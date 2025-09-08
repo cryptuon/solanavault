@@ -200,3 +200,4 @@ node_modules/
 /.emacs.desktop.lock
 
 working-docs
+*.vault
