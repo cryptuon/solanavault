@@ -10,3 +10,8 @@ pub mod network;
 
 /// Data replication and erasure coding
 pub mod replication;
+
+// Re-export key types
+pub use node::{StorageNode, StorageError};
+pub use network::{StorageNetwork, NetworkStats};
+pub use replication::{ReplicationStrategy, ErasureCoding};
