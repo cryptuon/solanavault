@@ -20,6 +20,9 @@ pub mod traits;
 /// Comprehensive tests with real Solana data
 pub mod tests;
 
+/// Benchmark compression algorithms
+pub mod benchmark;
+
 pub use traits::{CompressionStrategy, CompressionVersion, CompressionError};
 pub use stage1::{Stage1Compressor, AccountDictionary, ProgramCluster, BlockhashDelta};
 pub use v1::V1Compression;

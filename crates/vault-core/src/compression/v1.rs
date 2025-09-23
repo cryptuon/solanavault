@@ -76,8 +76,8 @@ impl CompressionStrategy for V1Compression {
             return Err(CompressionError::UnsupportedVersion(CompressionVersion::V1));
         }
 
-        // Decompress LZ4 data
-        let stage1_data = lz4::block::decompress(&package.lz4_data, None)
+        // Decompress LZ4 data with reasonable size limit
+        let stage1_data = lz4::block::decompress(&package.lz4_data, Some(100 * 1024 * 1024)) // 100MB limit
             .map_err(|e| CompressionError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
 
         // Apply Stage 1 decompression
