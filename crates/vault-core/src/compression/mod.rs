@@ -2,6 +2,9 @@
 //!
 //! This module provides versioned compression algorithms for Solana block data.
 
+/// Stage 1 structural compression algorithms
+pub mod stage1;
+
 /// Version 1 compression algorithm
 pub mod v1;
 
@@ -14,5 +17,11 @@ pub mod v3;
 /// Common traits and types for compression
 pub mod traits;
 
-pub use traits::CompressionStrategy;
-pub use traits::CompressionVersion;
+/// Comprehensive tests with real Solana data
+pub mod tests;
+
+pub use traits::{CompressionStrategy, CompressionVersion, CompressionError};
+pub use stage1::{Stage1Compressor, AccountDictionary, ProgramCluster, BlockhashDelta};
+pub use v1::V1Compression;
+pub use v2::V2Compression;
+pub use v3::V3Compression;
