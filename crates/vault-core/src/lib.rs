@@ -11,11 +11,11 @@ pub mod compression;
 /// Storage layer for managing the distributed storage network
 pub mod storage;
 
-/// Network layer for P2P communication (placeholder)
-// pub mod network;
+/// Network layer for P2P communication
+pub mod network;
 
-/// Economics layer for staking and incentives (placeholder)
-// pub mod economics;
+/// Economics layer for staking and incentives
+pub mod economics;
 
 /// API layer for external interfaces (placeholder)
 // pub mod api;

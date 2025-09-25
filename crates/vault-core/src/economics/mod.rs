@@ -1,12 +1,13 @@
 //! # Economics Module
 //!
-//! This module manages staking, rewards, and slashing mechanisms.
+//! Token economics, staking, and incentive mechanisms for the SolanaVault network.
 
-/// Staking and reward system
+/// Staking and reward distribution system
 pub mod staking;
 
-/// Slashing mechanisms for misbehavior
-pub mod slashing;
+/// Reward distribution mechanisms
+pub mod rewards;
 
-/// Token economics and incentive models
-pub mod tokenomics;
+// Re-export key types
+pub use staking::{StakingContract, NodeStake, StakingStats, StakingError};
+pub use rewards::{RewardDistribution, RewardCalculator, RewardStats};

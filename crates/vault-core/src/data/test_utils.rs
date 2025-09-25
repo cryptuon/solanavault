@@ -84,7 +84,7 @@ mod tests {
 
         // This test requires internet connection to Solana RPC
         if let Ok(block) = manager.get_test_block().await {
-            assert!(block.original_size > 0);
+            assert!(block.raw_data.len() > 0);
             assert!(block.transaction_count >= 0);
             println!("Successfully fetched block {} with {} transactions",
                      block.slot, block.transaction_count);

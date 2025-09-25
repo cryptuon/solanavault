@@ -16,7 +16,7 @@ use crate::data::CachedBlock;
 use serde::{Serialize, Deserialize};
 
 /// Stage 1 structural compressor
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stage1Compressor {
     account_dict: AccountDictionary,
     program_cluster: ProgramCluster,

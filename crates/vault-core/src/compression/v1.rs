@@ -49,6 +49,7 @@ impl CompressionStrategy for V1Compression {
         let package = V1CompressionPackage {
             version: 1,
             stage1_stats: stage1.get_stats(),
+            stage1_compressor: stage1, // Save the complete compressor state
             lz4_data: lz4_compressed,
         };
 
@@ -80,8 +81,8 @@ impl CompressionStrategy for V1Compression {
         let stage1_data = lz4::block::decompress(&package.lz4_data, Some(100 * 1024 * 1024)) // 100MB limit
             .map_err(|e| CompressionError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
 
-        // Apply Stage 1 decompression
-        let mut stage1 = self.stage1.clone();
+        // Apply Stage 1 decompression using the saved compressor state
+        let mut stage1 = package.stage1_compressor;
         stage1.decompress_block_data(&stage1_data)
     }
 
@@ -101,6 +102,7 @@ impl Default for V1Compression {
 struct V1CompressionPackage {
     version: u8,
     stage1_stats: super::stage1::Stage1Stats,
+    stage1_compressor: super::stage1::Stage1Compressor, // Save the complete state
     lz4_data: Vec<u8>,
 }
 

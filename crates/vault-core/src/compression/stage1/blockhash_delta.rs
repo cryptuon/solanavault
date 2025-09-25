@@ -8,7 +8,7 @@ use serde::{Serialize, Deserialize};
 use std::collections::VecDeque;
 
 /// Blockhash delta compressor using delta-of-delta encoding
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockhashDelta {
     /// Recent blockhashes for delta calculation
     recent_blockhashes: VecDeque<[u8; 32]>,

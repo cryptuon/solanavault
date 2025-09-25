@@ -39,7 +39,7 @@ impl BlockCache {
     pub fn get(&mut self, slot: u64) -> Option<CachedBlock> {
         // Check memory cache first
         if let Some(cached_block) = self.memory_cache.get(&slot) {
-            if self.is_cache_valid(cached_block.cached_at) {
+            if self.is_cache_valid(cached_block.block_time) {
                 log::debug!("Block {} found in memory cache", slot);
                 return Some(cached_block.clone());
             } else {
@@ -50,7 +50,7 @@ impl BlockCache {
 
         // Check disk cache
         if let Ok(cached_block) = self.load_from_disk(slot) {
-            if self.is_cache_valid(cached_block.cached_at) {
+            if self.is_cache_valid(cached_block.block_time) {
                 log::debug!("Block {} found in disk cache", slot);
                 // Add to memory cache
                 self.add_to_memory_cache(cached_block.clone());
@@ -82,12 +82,12 @@ impl BlockCache {
     pub fn contains(&self, slot: u64) -> bool {
         // Check memory first
         if let Some(cached_block) = self.memory_cache.get(&slot) {
-            return self.is_cache_valid(cached_block.cached_at);
+            return self.is_cache_valid(cached_block.block_time);
         }
 
         // Check disk
         if let Ok(cached_block) = self.load_from_disk(slot) {
-            return self.is_cache_valid(cached_block.cached_at);
+            return self.is_cache_valid(cached_block.block_time);
         }
 
         false
@@ -107,7 +107,7 @@ impl BlockCache {
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs();
-            current_time - cached_block.cached_at < cache_ttl
+            current_time - cached_block.block_time < cache_ttl
         });
 
         // Clean disk cache
@@ -122,7 +122,7 @@ impl BlockCache {
                 if let Some(slot_str) = file_name.strip_suffix(".json") {
                     if let Ok(slot) = slot_str.parse::<u64>() {
                         if let Ok(cached_block) = self.load_from_disk(slot) {
-                            if !self.is_cache_valid(cached_block.cached_at) {
+                            if !self.is_cache_valid(cached_block.block_time) {
                                 let _ = fs::remove_file(entry.path());
                                 log::debug!("Removed expired cache file for slot {}", slot);
                             }
@@ -155,13 +155,13 @@ impl BlockCache {
 
     // Private helper methods
 
-    fn is_cache_valid(&self, cached_at: u64) -> bool {
+    fn is_cache_valid(&self, block_time: u64) -> bool {
         let current_time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs();
 
-        current_time - cached_at < self.cache_ttl
+        current_time - block_time < self.cache_ttl
     }
 
     fn cache_file_path(&self, slot: u64) -> PathBuf {
@@ -201,7 +201,7 @@ impl BlockCache {
         if self.memory_cache.len() >= self.max_memory_entries {
             let oldest_slot = self.memory_cache
                 .iter()
-                .min_by_key(|(_, block)| block.cached_at)
+                .min_by_key(|(_, block)| block.block_time)
                 .map(|(slot, _)| *slot);
 
             if let Some(oldest_slot) = oldest_slot {

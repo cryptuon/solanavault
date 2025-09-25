@@ -10,11 +10,11 @@ use std::collections::HashMap;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CachedBlock {
     pub slot: u64,
-    pub block_data: Vec<u8>, // Store as raw bytes for simplicity
-    pub cached_at: u64, // Unix timestamp
-    pub compressed_size: Option<usize>,
-    pub original_size: usize,
+    pub raw_data: Vec<u8>, // Store as raw bytes for compression testing
     pub transaction_count: usize,
+    pub block_time: u64,
+    pub block_hash: String,
+    pub parent_slot: u64,
 }
 
 /// Block statistics for compression analysis

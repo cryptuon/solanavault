@@ -30,7 +30,7 @@ impl CompressionTestSuite {
 
         // Test compression
         let compressor = V1Compression::new();
-        let original_data = &block.block_data;
+        let original_data = &block.raw_data;
         let original_size = original_data.len();
 
         let compressed = compressor.compress(original_data)?;
@@ -67,7 +67,7 @@ impl CompressionTestSuite {
         log::info!("Testing Stage 1 compression components");
 
         let block = self.data_manager.get_test_block().await?;
-        let original_data = &block.block_data;
+        let original_data = &block.raw_data;
 
         // Test Account Dictionary
         let mut account_dict = AccountDictionary::new();
@@ -113,7 +113,7 @@ impl CompressionTestSuite {
 
         for block in blocks {
             let compressor = V1Compression::new();
-            let original_data = &block.block_data;
+            let original_data = &block.raw_data;
             let original_size = original_data.len();
 
             let start = std::time::Instant::now();
@@ -163,8 +163,8 @@ impl CompressionTestSuite {
 
         for block in blocks {
             let compressor = V1Compression::new();
-            let compressed = compressor.compress(&block.block_data)?;
-            let ratio = block.original_size as f64 / compressed.len() as f64;
+            let compressed = compressor.compress(&block.raw_data)?;
+            let ratio = block.raw_data.len() as f64 / compressed.len() as f64;
 
             log::info!("Block {} ({} txns): {:.2}:1 compression",
                       block.slot, block.transaction_count, ratio);

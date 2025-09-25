@@ -66,11 +66,11 @@ impl SolanaBlockClient {
 
         Ok(CachedBlock {
             slot,
-            block_data,
-            cached_at,
-            compressed_size: None,
-            original_size,
+            raw_data: block_data,
             transaction_count,
+            block_time: cached_at,
+            block_hash: format!("mock_hash_{}", slot),
+            parent_slot: slot.saturating_sub(1),
         })
     }
 

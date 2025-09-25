@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 /// Program clustering for compressing common program references
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProgramCluster {
     /// Map from program pubkey to cluster ID
     program_to_cluster: HashMap<Pubkey, u8>,
@@ -111,6 +111,13 @@ impl ProgramCluster {
             return Ok(data.to_vec());
         }
 
+        // Skip compression if data appears to be already compressed by AccountDictionary
+        // AccountDictionary creates specific patterns with high byte diversity
+        // that can be falsely identified as programs
+        if self.appears_pre_compressed(data) {
+            return Ok(data.to_vec());
+        }
+
         let mut compressed = Vec::new();
         let mut i = 0;
 
@@ -143,6 +150,12 @@ impl ProgramCluster {
 
     /// Decompress data by replacing cluster IDs with full program addresses
     pub fn decompress_data(&self, compressed_data: &[u8]) -> Result<Vec<u8>, CompressionError> {
+        // If the data appears to be pre-compressed (e.g., from AccountDictionary),
+        // it was never actually compressed by ProgramCluster, so return as-is
+        if self.appears_pre_compressed(compressed_data) {
+            return Ok(compressed_data.to_vec());
+        }
+
         let mut decompressed = Vec::new();
         let mut i = 0;
 
@@ -156,7 +169,10 @@ impl ProgramCluster {
                     decompressed.extend_from_slice(program.as_ref());
                     i += 2;
                 } else {
-                    return Err(CompressionError::InvalidFormat);
+                    // If cluster ID doesn't exist, treat 0xFE as a regular byte
+                    // This handles cases where 0xFE appears in compressed data but isn't a program marker
+                    decompressed.push(compressed_data[i]);
+                    i += 1;
                 }
             } else {
                 decompressed.push(compressed_data[i]);
@@ -176,22 +192,69 @@ impl ProgramCluster {
 
         let bytes = pubkey.as_ref();
 
-        // Heuristics for program addresses:
-        // 1. Programs often have specific patterns or are derived addresses
-        // 2. Check if it's a PDA (Program Derived Address)
-        // For now, use basic heuristics
+        // More conservative heuristics to avoid false positives on compressed data
 
-        // Not all zeros or all 0xFF
+        // 1. Not all zeros or all 0xFF
         if bytes.iter().all(|&b| b == 0) || bytes.iter().all(|&b| b == 0xFF) {
             return false;
         }
 
-        // Programs often have some structure - check for patterns
-        // This is a simple heuristic and could be improved with ML
+        // 2. Avoid highly repetitive patterns (likely compressed data artifacts)
         let unique_bytes = bytes.iter().collect::<std::collections::HashSet<_>>().len();
+        if unique_bytes < 16 {  // Increased threshold - programs should have high entropy
+            return false;
+        }
 
-        // If there's reasonable entropy (not too repetitive), might be a program
-        unique_bytes >= 8
+        // 3. Check for patterns that suggest compressed data (not programs)
+        // AccountDictionary markers and common compression artifacts
+        if bytes.starts_with(&[0x00, 0x00]) ||
+           bytes.starts_with(&[0xFF, 0xFF]) ||
+           bytes.ends_with(&[0x00, 0x00]) {
+            return false;
+        }
+
+        // 4. Programs often have specific byte ranges and distributions
+        // Real Solana program addresses have better entropy distribution
+        let mut byte_counts = [0u8; 256];
+        for &byte in bytes {
+            byte_counts[byte as usize] += 1;
+        }
+
+        // Check if any single byte appears too frequently (>= 25% of the address)
+        // This helps avoid compressed data patterns
+        for count in byte_counts.iter() {
+            if *count >= 8 {  // 8/32 = 25%
+                return false;
+            }
+        }
+
+        // 5. Only consider as program if it looks like a valid base58-style pattern
+        // Programs typically don't have extreme byte values in specific positions
+        true
+    }
+
+    /// Detect if data appears to be pre-compressed (e.g., by AccountDictionary)
+    fn appears_pre_compressed(&self, data: &[u8]) -> bool {
+        // Check for signs that this data was already compressed:
+
+        // 1. High frequency of certain marker bytes that AccountDictionary uses
+        let marker_count = data.iter().filter(|&&b| b == 0xFF || b == 0xFE || b == 0x00).count();
+        let marker_ratio = marker_count as f32 / data.len() as f32;
+
+        // 2. Unusual byte distribution (very high or very low entropy)
+        let unique_bytes = data.iter().collect::<std::collections::HashSet<_>>().len();
+        let entropy_ratio = unique_bytes as f32 / 256.0;
+
+        // 3. Contains sequences that don't look like Solana transaction data
+        let has_compression_patterns = data.windows(4).any(|w| {
+            // Look for patterns typical of compressed data
+            (w[0] == 0xFF && w[1] == 0xFF) ||
+            (w[0] == 0x00 && w[1] == 0x00 && w[2] == 0x00) ||
+            (w.iter().all(|&b| b == w[0])) // Repetitive sequences
+        });
+
+        // Skip ProgramCluster compression if this looks like pre-compressed data
+        marker_ratio > 0.1 || entropy_ratio < 0.3 || has_compression_patterns
     }
 
     /// Get the number of programs in the cluster

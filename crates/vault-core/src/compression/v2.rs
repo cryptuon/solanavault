@@ -67,6 +67,7 @@ impl CompressionStrategy for V2Compression {
         let package = V2CompressionPackage {
             version: 2,
             stage1_stats: stage1.get_stats(),
+            stage1_compressor: stage1, // Save the complete compressor state
             stage2_stats: Stage2Stats::default(), // Simplified for now
             lz4_data: lz4_compressed,
         };
@@ -99,8 +100,8 @@ impl CompressionStrategy for V2Compression {
         let stage1_data = lz4::block::decompress(&package.lz4_data, Some(100 * 1024 * 1024))
             .map_err(|e| CompressionError::Io(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
 
-        // Step 2: Apply Stage 1 decompression
-        let mut stage1 = self.stage1.clone();
+        // Step 2: Apply Stage 1 decompression using the saved compressor state
+        let mut stage1 = package.stage1_compressor;
         stage1.decompress_block_data(&stage1_data)
     }
 
@@ -120,6 +121,7 @@ impl Default for V2Compression {
 struct V2CompressionPackage {
     version: u8,
     stage1_stats: super::stage1::Stage1Stats,
+    stage1_compressor: super::stage1::Stage1Compressor, // Save the complete state
     stage2_stats: super::stage2::Stage2Stats,
     lz4_data: Vec<u8>,
 }

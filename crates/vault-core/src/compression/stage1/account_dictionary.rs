@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 /// Account dictionary for compressing addresses
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountDictionary {
     /// Map from pubkey to dictionary index
     address_to_index: HashMap<Pubkey, u16>,

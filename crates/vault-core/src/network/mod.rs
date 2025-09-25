@@ -5,8 +5,5 @@
 /// Peer-to-peer networking implementation
 pub mod p2p;
 
-/// Message protocols for node communication
-pub mod protocol;
-
-/// Network discovery and bootstrap
-pub mod discovery;
+// Re-export key types
+pub use p2p::{P2PNetwork, PeerInfo, NetworkStats, P2PError};
