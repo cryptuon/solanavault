@@ -1,0 +1,53 @@
+This is BibTeX, Version 0.99d (TeX Live 2023/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: solanavault_whitepaper.aux
+The style file: plain.bst
+Database file #1: references.bib
+Warning--to sort, need author or key in solana_stats_2024
+Warning--to sort, need author or key in blockchain_compression_2024
+Warning--to sort, need author or key in bitcoin_size_2024
+Warning--to sort, need author or key in ethereum_state_2024
+Warning--to sort, need author or key in solana_tps_2024
+Warning--to sort, need author or key in ethereum_gas_2024
+You've used 16 entries,
+            2118 wiz_defined-function locations,
+            572 strings with 6294 characters,
+and the built_in function-call counts, 4076 in all, are:
+= -- 407
+> -- 143
+< -- 1
++ -- 60
+- -- 44
+* -- 224
+:= -- 633
+add.period$ -- 51
+call.type$ -- 16
+change.case$ -- 70
+chr.to.int$ -- 0
+cite$ -- 22
+duplicate$ -- 149
+empty$ -- 389
+format.name$ -- 44
+if$ -- 899
+int.to.chr$ -- 0
+int.to.str$ -- 16
+missing$ -- 6
+newline$ -- 86
+num.names$ -- 20
+pop$ -- 111
+preamble$ -- 1
+purify$ -- 54
+quote$ -- 0
+skip$ -- 120
+stack$ -- 0
+substring$ -- 191
+swap$ -- 28
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 64
+warning$ -- 6
+while$ -- 29
+width$ -- 18
+write$ -- 173
+(There were 6 warnings)
