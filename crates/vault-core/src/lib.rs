@@ -17,10 +17,18 @@ pub mod network;
 /// Economics layer for staking and incentives
 pub mod economics;
 
+/// Workflows for end-to-end operations
+pub mod workflows;
+
+/// Memory management with RocksDB and optimized caching
+pub mod memory;
+
 /// API layer for external interfaces (placeholder)
 // pub mod api;
 
 /// Re-exports for convenient access to core types
-pub use compression::CompressionStrategy;
+pub use compression::{CompressionStrategy, BlockchainCompressionAdapter};
 pub use storage::StorageNode;
 pub use data::{SolanaBlockClient, BlockCache};
+pub use workflows::CompressionWorkflow;
+pub use memory::{VaultStorageEngine, VaultCacheManager, VaultMemoryPool, MemoryMetrics, PerformanceTracker};

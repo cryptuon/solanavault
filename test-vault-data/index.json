@@ -1,0 +1,29 @@
+{
+  "244000000": {
+    "slot": 244000000,
+    "file_path": "./test-vault-data/blocks/block_244000000.vault",
+    "original_size": 6094,
+    "compressed_size": 318,
+    "compression_ratio": 19.163522012578618,
+    "block_hash": "9d70c163aa5a0acf",
+    "stored_at": 1759097810
+  },
+  "244000002": {
+    "slot": 244000002,
+    "file_path": "./test-vault-data/blocks/block_244000002.vault",
+    "original_size": 12138,
+    "compressed_size": 519,
+    "compression_ratio": 23.387283236994218,
+    "block_hash": "3de077a24ca9bd54",
+    "stored_at": 1759097810
+  },
+  "244000001": {
+    "slot": 244000001,
+    "file_path": "./test-vault-data/blocks/block_244000001.vault",
+    "original_size": 9116,
+    "compressed_size": 420,
+    "compression_ratio": 21.704761904761906,
+    "block_hash": "74934b3b8acc847d",
+    "stored_at": 1759097810
+  }
+}

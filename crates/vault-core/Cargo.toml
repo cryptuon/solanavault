@@ -21,9 +21,12 @@ reqwest = { workspace = true }
 flate2 = { workspace = true }
 lz4 = { workspace = true }
 bincode = { workspace = true }
+zstd = "0.13"
 log = { workspace = true }
 rand = { workspace = true }
 bs58 = "0.4"
+blockchain-compression = { path = "../../../blockchain-compression", features = ["zstd"] }
+bytes = "1.5"
 
 [dev-dependencies]
 env_logger = { workspace = true }

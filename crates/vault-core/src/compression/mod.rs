@@ -39,6 +39,9 @@ pub mod optimized_xgboost;
 /// XGBoost-based Stage 3 compression (experimental)
 pub mod stage3_xgboost;
 
+/// Blockchain-compression library adapter
+pub mod blockchain_compression_adapter;
+
 // Re-export core types for easy access
 pub use traits::{CompressionStrategy, CompressionVersion, CompressionError};
 pub use stage1::{Stage1Compressor, AccountDictionary, ProgramCluster, BlockhashDelta};
@@ -47,6 +50,15 @@ pub use v1::V1Compression;
 pub use v2::V2Compression;
 pub use v3::V3Compression;
 pub use production_v3::PracticalMaxCompression;
+pub use blockchain_compression_adapter::{
+    BlockchainCompressionAdapter,
+    create_block_compressor,
+    create_account_compressor,
+    create_general_compressor,
+};
 
-/// Default production compression algorithm
+/// Default production compression algorithm - keeping original for compatibility
 pub type ProductionCompressor = PracticalMaxCompression;
+
+/// New blockchain compression adapter - use this for new code
+pub type BlockchainCompressor = BlockchainCompressionAdapter;

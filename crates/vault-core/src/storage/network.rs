@@ -6,8 +6,30 @@ use super::node::{StorageNode, StorageError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Represents the storage network
+/// Simplified node info for network serialization
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodeInfo {
+    pub id: String,
+    pub address: String,
+    pub capacity: u64,
+    pub used: u64,
+    pub reputation: f64,
+}
+
+impl From<&StorageNode> for NodeInfo {
+    fn from(node: &StorageNode) -> Self {
+        Self {
+            id: node.id.clone(),
+            address: node.address.clone(),
+            capacity: node.capacity,
+            used: node.used,
+            reputation: node.reputation,
+        }
+    }
+}
+
+/// Represents the storage network
+#[derive(Debug)]
 pub struct StorageNetwork {
     /// Collection of storage nodes
     nodes: HashMap<String, StorageNode>,
@@ -63,12 +85,17 @@ impl StorageNetwork {
         Ok(stored_nodes)
     }
     
+    /// Get all nodes as serializable info
+    pub fn get_nodes_info(&self) -> Vec<NodeInfo> {
+        self.nodes.values().map(|node| node.into()).collect()
+    }
+
     /// Get network statistics
     pub fn stats(&self) -> NetworkStats {
         let total_nodes = self.nodes.len();
         let total_capacity: u64 = self.nodes.values().map(|n| n.capacity).sum();
         let used_capacity: u64 = self.nodes.values().map(|n| n.used).sum();
-        
+
         NetworkStats {
             total_nodes,
             total_capacity,

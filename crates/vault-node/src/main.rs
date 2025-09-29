@@ -61,11 +61,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Create data directory if it doesn't exist
     tokio::fs::create_dir_all(&args.data_dir).await?;
 
-    // Initialize storage node
-    let mut storage_node = StorageNode::new(
+    // Initialize storage node with enhanced functionality
+    let mut storage_node = StorageNode::new_with_data_dir(
         args.node_id.clone(),
         args.bind_address.to_string(),
         args.capacity,
+        args.data_dir.clone(),
     );
 
     // Initialize compression engine
@@ -102,7 +103,11 @@ async fn start_vault_node(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     println!("🔧 Starting vault node services...");
 
-    // 1. Initialize P2P networking
+    // 1. Initialize storage node with real functionality
+    println!("💾 Initializing storage node...");
+    storage_node.initialize().await?;
+
+    // 2. Initialize P2P networking
     println!("🌐 Initializing P2P network...");
 
     // For now, simulate network initialization
@@ -111,23 +116,15 @@ async fn start_vault_node(
         // TODO: Implement actual P2P connection
     }
 
-    // 2. Start data storage service
-    println!("💾 Starting data storage service...");
-
-    // Create storage directory structure
-    let blocks_dir = args.data_dir.join("blocks");
-    let metadata_dir = args.data_dir.join("metadata");
-    tokio::fs::create_dir_all(&blocks_dir).await?;
-    tokio::fs::create_dir_all(&metadata_dir).await?;
-
     // 3. Start health monitoring
     println!("❤️  Starting health monitoring...");
 
     // 4. Start API server for block storage/retrieval
     println!("🌐 Starting API server on {}...", args.bind_address);
 
-    // For demo purposes, we'll simulate the services
-    simulate_node_services(&mut storage_node, &args).await?;
+    // 5. Demonstrate storage functionality
+    println!("🎬 Running storage demonstration...");
+    storage_node.demonstrate_storage().await?;
 
     println!("✅ All vault node services started successfully!");
 
@@ -136,62 +133,16 @@ async fn start_vault_node(
         tokio::time::sleep(tokio::time::Duration::from_secs(30)).await;
 
         // Periodic health check and stats
-        let stats = storage_node.get_node_stats();
+        let stats = storage_node.get_storage_stats();
         log::info!(
-            "Node {} - Capacity: {:.1}% used, Reputation: {:.2}",
+            "Node {} - Storage: {:.1}% used ({} blocks), Compression: {:.2}:1, Reputation: {:.2}",
             args.node_id,
             (stats.used_capacity as f64 / stats.total_capacity as f64) * 100.0,
+            stats.blocks_stored,
+            stats.total_compression_ratio,
             storage_node.reputation
         );
     }
 }
 
-async fn simulate_node_services(
-    storage_node: &mut StorageNode,
-    args: &Args,
-) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    // Simulate storing some initial data to show the node is working
-    let demo_data_size = 1024 * 1024; // 1MB
 
-    println!("📦 Simulating data storage...");
-    storage_node.store_data(demo_data_size)?;
-
-    let stats = storage_node.get_node_stats();
-    println!("   Stored 1MB of data");
-    println!("   Available capacity: {:.2} GB", stats.available_capacity as f64 / 1_000_000_000.0);
-    println!("   Node reputation: {:.2}", storage_node.reputation);
-
-    // Simulate network participation
-    println!("🤝 Simulating network participation...");
-    println!("   Node announced to network");
-    println!("   Listening for storage requests on {}", args.bind_address);
-
-    // Simulate proof-of-storage
-    println!("🔐 Generating proof-of-storage...");
-    println!("   Storage proof generated and submitted");
-
-    Ok(())
-}
-
-// Extension trait to add node stats functionality
-pub trait NodeStatsExt {
-    fn get_node_stats(&self) -> NodeStats;
-}
-
-impl NodeStatsExt for StorageNode {
-    fn get_node_stats(&self) -> NodeStats {
-        NodeStats {
-            total_capacity: self.capacity,
-            used_capacity: self.used,
-            available_capacity: self.available_capacity(),
-            reputation: self.reputation,
-        }
-    }
-}
-
-pub struct NodeStats {
-    pub total_capacity: u64,
-    pub used_capacity: u64,
-    pub available_capacity: u64,
-    pub reputation: f64,
-}

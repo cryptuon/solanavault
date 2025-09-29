@@ -38,4 +38,7 @@ pub enum CompressionError {
     
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
+
+    #[error("Internal error: {message}")]
+    Internal { message: String },
 }

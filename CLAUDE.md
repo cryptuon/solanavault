@@ -2,167 +2,143 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Build Commands
 
-SolanaVault is a revolutionary blockchain data compression and storage system that achieves 1271:1 compression ratios on Solana data, reducing storage costs by 96%. The system implements a multi-layer architecture with compression algorithms, distributed storage, P2P networking, and token economics.
-
-## Build & Development Commands
-
-### Core Commands
 ```bash
-# Build entire workspace (recommended for development)
+# Build all crates in release mode
 cargo build --release
 
-# Quick syntax check without building
-cargo check --workspace
+# Build specific crates
+cargo build -p vault-core
+cargo build -p vault-cli
+cargo build -p vault-node
+cargo build -p vault-rpc-proxy
 
-# Run all tests
+# Run tests for all workspace crates
 cargo test --workspace
 
-# Run specific test module
-cargo test compression_tests
+# Run specific test suites
+cargo test -p vault-core
+cargo test compression_integration
+cargo test --test compression_integration
 
-# Run integration tests (requires network access)
-cargo test --test compression_tests -- --ignored
+# Run with debug logging
+RUST_LOG=debug cargo test test_name -- --nocapture
+RUST_BACKTRACE=1 cargo test test_name -- --nocapture
 
-# Run a specific test
-cargo test test_v1_compression_basic
+# Run single test function
+cargo test test_v2_compression_basic -- --nocapture
 ```
 
-### Demo Commands
+## Running Components
+
 ```bash
-# Full compression demo (demonstrates 1271:1 ratio)
-./target/release/vault-cli compress-demo --blocks 245000000:245001000
-
-# Deploy compressed data to storage network
-./target/release/vault-cli deploy-to-vault --compressed-blocks compressed_blocks.vault
-
-# Cost analysis comparison
-./target/release/vault-cli cost-analysis --blocks 1000000
-
-# Start storage node
-./target/release/vault-node --node-id test-node --debug
-
 # Start RPC proxy (drop-in Solana RPC replacement)
 ./target/release/vault-rpc-proxy
-```
+# or with logging:
+RUST_LOG=debug ./target/release/vault-rpc-proxy
 
-### Compression Algorithm Testing
-```bash
-# Test production compression (PracticalMaxCompression)
-cargo test test_practical_max_compression -- --nocapture
+# Run compression demo
+./target/release/vault-cli compress-demo --blocks 245000000:245001000
 
-# Test comprehensive compression performance
-cargo test test_comprehensive_compression_performance -- --nocapture
+# Deploy compressed data to vault network
+./target/release/vault-cli deploy-to-vault --compressed-blocks compressed_blocks.vault
 
-# Debug compression stage by stage
-cargo test test_debug_stage_by_stage -- --nocapture
+# Run cost analysis
+./target/release/vault-cli cost-analysis
+
+# Start storage node
+./target/release/vault-node
+
+# Run complete demo sequence
+./demo.sh
 ```
 
 ## Architecture Overview
 
-### Core Components Structure
-- **vault-core**: Central library containing all core algorithms and systems
-- **vault-cli**: Command-line interface for network interaction and demos
+SolanaVault is a Rust workspace with 4 main crates:
+
+### Core Components
+
+- **vault-core**: Central library containing all core functionality
+  - `compression/`: Multi-stage compression pipeline (v1, v2, v3 algorithms)
+  - `memory/`: Advanced memory management (RocksDB storage, multi-level caching, memory pools)
+  - `data/`: Solana block data access and caching layer
+  - `storage/`: Distributed storage network implementation
+  - `network/`: P2P communication protocols
+  - `economics/`: Staking and incentive mechanisms
+  - `workflows/`: End-to-end operation orchestration
+
+- **vault-rpc-proxy**: Drop-in replacement for Solana RPC that serves compressed data
+- **vault-cli**: Command-line tools for network interaction and demos
 - **vault-node**: Storage node implementation for the distributed network
-- **vault-rpc-proxy**: Drop-in replacement for Solana RPC with historical data support
 
-### vault-core Architecture
-The core library is organized into 5 main layers:
+### Compression Pipeline
 
-1. **Compression Layer** (`src/compression/`)
-   - **Production Algorithm**: `production_v3.rs` - 1271:1 compression using PracticalMaxCompression
-   - **Versioned Algorithms**: `v1.rs` (10:1), `v2.rs` (25:1), `v3.rs` (47:1) for compatibility
-   - **Multi-Stage Pipeline**: `stage1/` (structural), `stage2/` (bot intelligence), `stage3/` (ML)
-   - **Key Type**: `ProductionCompressor = PracticalMaxCompression`
+The system uses a 3-stage compression pipeline:
 
-2. **Storage Layer** (`src/storage/`)
-   - **StorageNode**: Individual node with capacity and reputation tracking
-   - **StorageNetwork**: Manages 3+ node distributed storage with replication
-   - **ReplicationStrategy**: 3x replication with 2/3 availability requirement
+1. **Stage 1**: Program clustering and structural optimization
+2. **Stage 2**: Transaction analysis and template extraction
+3. **Stage 3**: ML optimization using XGBoost for strategy selection
 
-3. **Network Layer** (`src/network/`)
-   - **P2P System**: `p2p.rs` - Peer discovery, mesh networking, reputation system
-   - **Bootstrap Support**: Network discovery through bootstrap nodes
+Compression versions:
+- **V1**: Baseline compression (10:1 ratio)
+- **V2**: Enhanced compression (25:1 ratio)
+- **V3**: Advanced ML-based compression (15-25:1 ratio in production)
 
-4. **Economics Layer** (`src/economics/`)
-   - **Staking System**: `staking.rs` - Token staking, performance scoring, slashing
-   - **Reward Distribution**: `rewards.rs` - Performance-based reward calculation
-   - **APY**: 8-15% based on performance metrics
+### Memory Management
 
-5. **Data Layer** (`src/data/`)
-   - **SolanaBlockClient**: Interfaces with Solana RPC for block data
-   - **BlockCache**: Caching layer for frequently accessed blocks
+Three-level cache hierarchy implemented:
+- **L1 Cache**: Hot data, uncompressed (sub-microsecond access)
+- **L2 Cache**: Warm data, compressed (microsecond access)
+- **L3 Cache**: Cold data, persistent storage (millisecond access)
 
-### Compression Algorithm Details
+Uses RocksDB for persistent storage with intelligent caching strategies.
 
-The system uses a 5-stage compression pipeline in `production_v3.rs`:
+### External Dependencies
 
-1. **Stage 1 (85% compression)**: Solana-specific structural patterns
-   - Account dictionary: 32 bytes → 2 bytes mapping
-   - Program clustering: Common program deduplication
-   - Blockhash delta compression
+- **blockchain-compression**: Located at `../blockchain-compression`, provides core compression algorithms
+- **Solana SDK**: Version 1.18 for blockchain data structures
+- **Standard compression**: zstd, lz4, flate2 for baseline algorithms
 
-2. **Stage 2 (additional 80%)**: Bot intelligence
-   - Arbitrage bot pattern detection
-   - Signature clustering using VAE
-   - Predictable failure pattern compression
+## Testing Patterns
 
-3. **Stage 3 (additional 70%)**: Temporal analysis
-   - Account state evolution tracking
-   - Zero-value transfer bitmap optimization
-   - Cross-block correlation patterns
+The codebase has comprehensive testing with 48 files containing tests:
 
-4. **Stage 4 (additional 60%)**: Neural compression
-   - Instruction VAE for latent patterns
-   - Context-aware dictionaries
-   - Adaptive Huffman encoding
+- Integration tests in `crates/vault-core/tests/`
+- Unit tests embedded in source files with `#[test]` attributes
+- Test utilities in `src/data/test_utils.rs`
+- Real Solana block data testing patterns
 
-5. **Stage 5 (additional 40%)**: Entropy optimization
-   - Context Tree Weighting (CTW)
-   - DEFLATE final compression
-   - Cryptographic integrity verification
+## Environment Variables
 
-## Key Implementation Notes
+Key environment variables for debugging and configuration:
 
-### Compression Strategy Pattern
-All compression algorithms implement the `CompressionStrategy` trait:
-```rust
-pub trait CompressionStrategy {
-    fn compress(&self, data: &[u8]) -> Result<Vec<u8>, CompressionError>;
-    fn decompress(&self, data: &[u8]) -> Result<Vec<u8>, CompressionError>;
-    fn version(&self) -> CompressionVersion;
-}
+```bash
+RUST_LOG=debug                          # General debug logging
+RUST_LOG=vault_core::compression=debug  # Compression-specific logging
+RUST_BACKTRACE=1                        # Backtraces on panics
+RUST_BACKTRACE=full                     # Full backtraces
 ```
 
-### Production Algorithm Usage
-Use `ProductionCompressor` (alias for `PracticalMaxCompression`) for new code:
-```rust
-use vault_core::compression::ProductionCompressor;
-let compressor = ProductionCompressor::new();
-```
+## Key Configuration
 
-### Economic System Integration
-The economics system requires performance metrics collection:
-- **Uptime tracking**: Node availability percentage
-- **Response time monitoring**: Average retrieval latency
-- **Storage proofs**: Cryptographic proof of data possession
-- **Success rate tracking**: Data retrieval success percentage
+- Workspace uses Rust 2021 edition
+- Solana SDK version 1.18 across all crates
+- Tokio async runtime with full features
+- Production builds should use `--release` flag for optimal compression performance
 
-### Error Handling
-The system uses `CompressionError` for all compression operations and `thiserror` for structured error handling throughout the codebase.
+## Development Workflow
 
-### Testing Strategy
-- **Unit tests**: Embedded in each module with `#[cfg(test)]`
-- **Integration tests**: In `crates/tests/` directory
-- **Real data testing**: Tests marked with `#[ignore]` require network access
-- **Performance benchmarks**: Use `-- --nocapture` to see detailed output
+1. Make changes to relevant crate in `crates/`
+2. Test specific crate: `cargo test -p crate-name`
+3. Build in release mode: `cargo build --release`
+4. Test RPC proxy: `./target/release/vault-rpc-proxy`
+5. Verify compression: `./target/release/vault-cli compress-demo`
 
-### Network Protocol
-The P2P layer uses:
-- **Peer discovery**: DHT-based routing with Kademlia-style lookups
-- **Reputation system**: Performance-based peer scoring
-- **Bootstrap nodes**: Initial network entry points
-- **Mesh topology**: Full connectivity between storage nodes
+## Performance Notes
 
-This architecture enables SolanaVault to achieve its revolutionary compression ratios while maintaining data integrity and economic sustainability through carefully designed incentive mechanisms.
+- Compression performance is critical - always test with `--release` builds
+- Use `RUST_LOG=debug` for detailed compression pipeline analysis
+- Memory management is optimized for large block processing
+- RPC proxy provides sub-millisecond response times when properly configured

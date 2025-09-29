@@ -12,6 +12,6 @@ pub mod network;
 pub mod replication;
 
 // Re-export key types
-pub use node::{StorageNode, StorageError};
+pub use node::{StorageNode, StorageError, BlockMetadata, StorageStats};
 pub use network::{StorageNetwork, NetworkStats};
 pub use replication::{ReplicationStrategy, ErasureCoding};
