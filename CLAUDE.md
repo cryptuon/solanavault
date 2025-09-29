@@ -14,6 +14,10 @@ cargo build -p vault-cli
 cargo build -p vault-node
 cargo build -p vault-rpc-proxy
 
+# Build decentralized binaries
+cargo build --release --bin vault-rpc-proxy          # Centralized proxy
+cargo build --release --bin vault-rpc-decentralized  # Decentralized proxy
+
 # Run tests for all workspace crates
 cargo test --workspace
 
@@ -26,119 +30,201 @@ cargo test --test compression_integration
 RUST_LOG=debug cargo test test_name -- --nocapture
 RUST_BACKTRACE=1 cargo test test_name -- --nocapture
 
-# Run single test function
-cargo test test_v2_compression_basic -- --nocapture
+# Economics demo
+cargo run --example economics_demo
 ```
 
 ## Running Components
 
 ```bash
-# Start RPC proxy (drop-in Solana RPC replacement)
-./target/release/vault-rpc-proxy
-# or with logging:
-RUST_LOG=debug ./target/release/vault-rpc-proxy
+# Decentralized Network (Recommended)
+./target/release/vault-rpc-decentralized    # Full decentralized proxy
+./target/release/vault-node                 # Storage node
+./target/release/vault-cli compress-demo    # Demo compression
 
-# Run compression demo
-./target/release/vault-cli compress-demo --blocks 245000000:245001000
+# Legacy Centralized Mode
+./target/release/vault-rpc-proxy            # Centralized proxy (legacy)
 
-# Deploy compressed data to vault network
-./target/release/vault-cli deploy-to-vault --compressed-blocks compressed_blocks.vault
+# Light Client for Applications
+./target/release/vault-light-client start --balance 100000
 
-# Run cost analysis
-./target/release/vault-cli cost-analysis
-
-# Start storage node
-./target/release/vault-node
-
-# Run complete demo sequence
-./demo.sh
+# Development
+RUST_LOG=debug ./target/release/vault-rpc-decentralized
+./demo.sh  # Complete demo sequence
 ```
 
 ## Architecture Overview
 
-SolanaVault is a Rust workspace with 4 main crates:
+SolanaVault is a **fully decentralized network** with economic incentives:
 
 ### Core Components
 
-- **vault-core**: Central library containing all core functionality
-  - `compression/`: Multi-stage compression pipeline (v1, v2, v3 algorithms)
-  - `memory/`: Advanced memory management (RocksDB storage, multi-level caching, memory pools)
-  - `data/`: Solana block data access and caching layer
-  - `storage/`: Distributed storage network implementation
-  - `network/`: P2P communication protocols
-  - `economics/`: Staking and incentive mechanisms
-  - `workflows/`: End-to-end operation orchestration
+- **vault-core**: Central library with decentralized networking
+  - `network/`: Complete P2P networking stack
+    - `transport.rs`: NNG-based high-performance transport
+    - `discovery.rs`: Kademlia DHT for peer discovery
+    - `consensus.rs`: Byzantine Fault Tolerant consensus
+    - `decentralized.rs`: Coordinated network manager
+    - `light_client.rs`: Lightweight client for non-node users
+    - `gateway.rs`: Monetized network access points
+  - `compression/`: Multi-stage compression (15-25:1 ratios)
+  - `memory/`: Advanced caching and storage
+  - `economics/`: Staking, rewards, and payment systems
 
-- **vault-rpc-proxy**: Drop-in replacement for Solana RPC that serves compressed data
-- **vault-cli**: Command-line tools for network interaction and demos
-- **vault-node**: Storage node implementation for the distributed network
+- **vault-rpc-proxy**: Two modes of operation
+  - `main.rs`: Legacy centralized proxy
+  - `decentralized_main.rs`: **New decentralized proxy**
+- **vault-cli**: Network tools and demos
+- **vault-node**: Full network participant with storage
 
-### Compression Pipeline
+### Decentralized Network Architecture
 
-The system uses a 3-stage compression pipeline:
+**Transport Layer**: NNG (nanomsg-next-generation) for P2P communication
+- Binary message serialization (not JSON)
+- Publisher/Subscriber patterns
+- Direct peer connections
+- Microsecond-level latency
 
-1. **Stage 1**: Program clustering and structural optimization
-2. **Stage 2**: Transaction analysis and template extraction
-3. **Stage 3**: ML optimization using XGBoost for strategy selection
+**Discovery Layer**: Kademlia DHT
+- Automatic peer discovery
+- Content-based routing
+- Bootstrap node support
+- Geographic distribution
 
-Compression versions:
-- **V1**: Baseline compression (10:1 ratio)
-- **V2**: Enhanced compression (25:1 ratio)
-- **V3**: Advanced ML-based compression (15-25:1 ratio in production)
+**Consensus Layer**: Byzantine Fault Tolerant
+- Data integrity verification
+- 2/3 majority requirements
+- Reputation-based slashing
+- Automatic conflict resolution
 
-### Memory Management
+**Economic Layer**: Pay-per-use model
+- Light clients pay micro-tokens
+- Gateway operators earn revenue
+- Network fees fund infrastructure
+- Volume discounts and surge pricing
 
-Three-level cache hierarchy implemented:
-- **L1 Cache**: Hot data, uncompressed (sub-microsecond access)
-- **L2 Cache**: Warm data, compressed (microsecond access)
-- **L3 Cache**: Cold data, persistent storage (millisecond access)
+### Client Access Patterns
 
-Uses RocksDB for persistent storage with intelligent caching strategies.
+**1. Light Client (Recommended for most users)**
+```bash
+# Install and run locally
+vault-light-client start --wallet-balance 50000
+# Use standard Solana APIs that now connect to decentralized network
+```
 
-### External Dependencies
+**2. Direct Gateway Access**
+```bash
+# Connect directly to gateway nodes for paid access
+curl -H "Authorization: Bearer vault_token" https://gateway1.solanavault.com
+```
 
-- **blockchain-compression**: Located at `../blockchain-compression`, provides core compression algorithms
-- **Solana SDK**: Version 1.18 for blockchain data structures
-- **Standard compression**: zstd, lz4, flate2 for baseline algorithms
+**3. Full Node Participation**
+```bash
+# Run complete node and earn consensus rewards
+./target/release/vault-node --storage-capacity 100GB
+```
+
+### Economic Model
+
+**Cost Structure (micro-tokens)**:
+- Base fee: 100μ per request
+- Data fee: 50μ per KB
+- Priority: 1.5x multiplier
+- Volume discounts: Up to 25% off
+
+**Revenue Distribution**:
+- 95% to gateway operators
+- 5% to network development fund
+- Consensus rewards for storage nodes
+- Reputation bonuses for reliability
 
 ## Testing Patterns
 
-The codebase has comprehensive testing with 48 files containing tests:
+The codebase has comprehensive testing including decentralized network tests:
 
-- Integration tests in `crates/vault-core/tests/`
-- Unit tests embedded in source files with `#[test]` attributes
-- Test utilities in `src/data/test_utils.rs`
-- Real Solana block data testing patterns
+- Integration tests: `crates/vault-core/tests/`
+- Network tests: P2P, consensus, and economic simulations
+- Economics demo: `examples/economics_demo.rs`
+- Real blockchain data testing
 
 ## Environment Variables
 
-Key environment variables for debugging and configuration:
-
 ```bash
-RUST_LOG=debug                          # General debug logging
-RUST_LOG=vault_core::compression=debug  # Compression-specific logging
-RUST_BACKTRACE=1                        # Backtraces on panics
-RUST_BACKTRACE=full                     # Full backtraces
+# Networking
+RUST_LOG=debug                                    # General debug
+RUST_LOG=vault_core::network=debug               # Network-specific
+RUST_LOG=vault_core::network::consensus=debug    # Consensus only
+
+# Development
+RUST_BACKTRACE=1                                 # Error traces
+VAULT_BOOTSTRAP_NODES=tcp://node1:4040,tcp://node2:4040  # Bootstrap peers
+VAULT_GATEWAY_ENDPOINT=https://gateway.solanavault.com   # Gateway URL
 ```
 
-## Key Configuration
+## Key Dependencies
 
-- Workspace uses Rust 2021 edition
-- Solana SDK version 1.18 across all crates
-- Tokio async runtime with full features
-- Production builds should use `--release` flag for optimal compression performance
+- **NNG**: High-performance networking transport
+- **Blockchain-compression**: Core compression algorithms at `../blockchain-compression`
+- **Solana SDK**: v1.18 for blockchain compatibility
+- **Tokio**: Async runtime for network operations
+- **Serde**: Message serialization
+- **UUID, SHA2**: Cryptographic operations
 
 ## Development Workflow
 
-1. Make changes to relevant crate in `crates/`
-2. Test specific crate: `cargo test -p crate-name`
-3. Build in release mode: `cargo build --release`
-4. Test RPC proxy: `./target/release/vault-rpc-proxy`
-5. Verify compression: `./target/release/vault-cli compress-demo`
+### For Network Development:
+1. Start with `cargo run --example economics_demo`
+2. Test decentralized proxy: `./target/release/vault-rpc-decentralized`
+3. Test light client integration
+4. Deploy gateway nodes for production
+
+### For Compression Development:
+1. Test specific algorithms: `cargo test compression_integration`
+2. Benchmark: `cargo run -p vault-cli -- compress-demo`
+3. Verify integrity: Check round-trip compression
+
+### For Economic Development:
+1. Modify pricing in `network/gateway.rs`
+2. Test with `economics_demo.rs`
+3. Verify payment flows and incentives
+
+## Production Deployment
+
+**Gateway Node**:
+```bash
+./target/release/vault-rpc-decentralized \
+  --gateway-mode \
+  --pricing-config pricing.json \
+  --storage-capacity 1TB
+```
+
+**Light Client**:
+```bash
+./target/release/vault-light-client \
+  --ipc-path /tmp/vault.sock \
+  --gateway tcp://gateway.solanavault.com:5050
+```
+
+**Storage Node**:
+```bash
+./target/release/vault-node \
+  --storage-path /data/vault \
+  --consensus-participation true \
+  --bootstrap tcp://bootstrap.solanavault.com:4040
+```
 
 ## Performance Notes
 
-- Compression performance is critical - always test with `--release` builds
-- Use `RUST_LOG=debug` for detailed compression pipeline analysis
-- Memory management is optimized for large block processing
-- RPC proxy provides sub-millisecond response times when properly configured
+- **Network**: NNG provides superior performance vs HTTP/JSON-RPC
+- **Compression**: 15-25:1 ratios require `--release` builds
+- **Economics**: Micro-payments require payment channel optimization
+- **Consensus**: Byzantine agreement adds latency but ensures integrity
+- **Caching**: Light clients cache aggressively to minimize costs
+
+## Key Concepts
+
+- **Drop-in Compatibility**: Standard Solana RPC API works unchanged
+- **Economic Sustainability**: Users pay for usage, operators earn revenue
+- **True Decentralization**: No central points of failure or control
+- **Automatic Optimization**: Intelligent routing, caching, and pricing
+- **Developer-Friendly**: Existing tools and workflows continue to work

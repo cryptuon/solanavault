@@ -15,3 +15,12 @@ serde_json = { workspace = true }
 anyhow = { workspace = true }
 warp = "0.3"
 reqwest = { version = "0.11", features = ["json"] }
+uuid = { version = "1.0", features = ["v4"] }
+
+[[bin]]
+name = "vault-rpc-proxy"
+path = "src/main.rs"
+
+[[bin]]
+name = "vault-rpc-decentralized"
+path = "src/decentralized_main.rs"
