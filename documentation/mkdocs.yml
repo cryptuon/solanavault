@@ -1,0 +1,87 @@
+site_name: SolanaVault Documentation
+site_description: Decentralized blockchain compression and storage network for Solana
+site_author: SolanaVault Team
+site_url: https://docs.solanavault.io
+
+repo_name: solanavault
+repo_url: https://github.com/solanavault/solanavault
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.mark
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quick Start: guides/quickstart.md
+    - Installation: guides/installation.md
+  - User Guides:
+    - Light Client: guides/light-client.md
+    - Gateway Operators: guides/gateway-operators.md
+    - Full Node Setup: guides/full-node.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Compression Pipeline: architecture/compression.md
+    - Network Protocol: architecture/network.md
+    - Economics: architecture/economics.md
+  - Reference:
+    - API Reference: reference/api.md
+    - Configuration: reference/configuration.md
+    - CLI Commands: reference/cli.md
+  - Troubleshooting:
+    - Common Issues: troubleshooting/common-issues.md
+    - FAQ: troubleshooting/faq.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/solanavault/solanavault
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/solanavault
+
+copyright: Copyright &copy; 2024-2025 SolanaVault
