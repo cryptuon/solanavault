@@ -40,3 +40,11 @@ log = "0.4"
 rand = "0.8"
 tempfile = "3.0"
 tokio-test = "0.4"
+# Production logging and observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+# Rate limiting
+governor = "0.6"
+# Metrics
+metrics = "0.21"
+metrics-exporter-prometheus = "0.12"

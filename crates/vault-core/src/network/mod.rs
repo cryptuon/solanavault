@@ -24,6 +24,9 @@ pub mod light_client;
 /// Gateway node for monetizing network access
 pub mod gateway;
 
+/// TLS configuration for secure network communication
+pub mod tls;
+
 // Re-export key types
 pub use p2p::{P2PNetwork, PeerInfo, P2PError};
 pub use transport::{NngTransport, NetworkMessage, TransportError, NetworkStats};
@@ -32,3 +35,4 @@ pub use consensus::{ConsensusEngine, ConsensusProposal, VoteChoice, ReputationEv
 pub use decentralized::{DecentralizedVaultNode, DecentralizedRpcHandler, NodeConfig};
 pub use light_client::{LightClient, LightClientConfig, RequestPriority, WalletInfo};
 pub use gateway::{GatewayNode, GatewayConfig, PricingInfo, GatewayStats};
+pub use tls::{TlsConfig, TlsError, TlsVersion, TlsStatus};

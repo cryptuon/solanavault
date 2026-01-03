@@ -64,6 +64,7 @@ nav:
     - Light Client: guides/light-client.md
     - Gateway Operators: guides/gateway-operators.md
     - Full Node Setup: guides/full-node.md
+    - Node Dashboard: guides/node-dashboard.md
   - Architecture:
     - Overview: architecture/overview.md
     - Compression Pipeline: architecture/compression.md

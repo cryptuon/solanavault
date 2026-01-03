@@ -2,6 +2,8 @@
 
 SolanaVault implements a sustainable economic model that incentivizes network participation while keeping costs low for users.
 
+> For complete token distribution, vesting schedules, and governance details, see the [Tokenomics Documentation](tokenomics.md).
+
 ---
 
 ## Overview
@@ -321,10 +323,17 @@ Required stake = 12,666,667 / 1000
 
 | Metric | Value |
 |--------|-------|
-| Total Supply | 1,000,000,000 tokens |
-| Circulating | TBD |
-| Locked (team) | TBD |
-| Ecosystem fund | TBD |
+| Total Supply | 1,000,000,000 VAULT |
+| Circulating (at TGE) | ~80,000,000 VAULT (8%) |
+| Network Rewards | 400,000,000 VAULT (40%) |
+| Ecosystem Fund | 200,000,000 VAULT (20%) |
+| Team & Advisors | 150,000,000 VAULT (15%) |
+| Private Sale | 100,000,000 VAULT (10%) |
+| Public Sale | 50,000,000 VAULT (5%) |
+| Treasury | 70,000,000 VAULT (7%) |
+| Liquidity | 30,000,000 VAULT (3%) |
+
+> See [Tokenomics](tokenomics.md) for complete vesting schedules.
 
 ### Emission Schedule
 

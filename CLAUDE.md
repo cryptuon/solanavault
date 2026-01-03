@@ -53,6 +53,93 @@ RUST_LOG=debug ./target/release/vault-rpc-decentralized
 ./demo.sh  # Complete demo sequence
 ```
 
+## Node UI (TUI & Web Dashboard)
+
+The vault-node supports both a Terminal User Interface (TUI) and a Web Dashboard, driven by the same core `NodeDashboardApi`.
+
+### Building with UI Features
+
+```bash
+# Build with TUI only
+cargo build -p vault-node --features tui --release
+
+# Build with Web Dashboard only
+cargo build -p vault-node --features dashboard --release
+
+# Build with both TUI and Web Dashboard
+cargo build -p vault-node --features full --release
+```
+
+### Running with UI
+
+```bash
+# Run with TUI (terminal interface)
+./target/release/vault-node --tui
+
+# Run with Web Dashboard on port 3000
+./target/release/vault-node --dashboard-port 3000
+
+# Both can run simultaneously
+./target/release/vault-node --dashboard-port 3000  # Then access http://localhost:3000
+```
+
+### Building the Vue.js Frontend
+
+The web dashboard uses Vue.js + Tailwind CSS. To build:
+
+```bash
+cd crates/vault-node/dashboard-frontend
+npm install
+npm run build
+```
+
+Then rebuild vault-node with `cargo build -p vault-node --features dashboard --release`.
+
+### Dashboard API Endpoints
+
+When running with `--dashboard-port`:
+
+- `GET /api/stats` - Full node statistics
+- `GET /api/storage` - Storage metrics only
+- `GET /api/network` - Network metrics only
+- `GET /api/economics` - Economics metrics only
+- `GET /api/history` - Metrics history for charts
+- `GET /api/health` - Health check
+- `WS /ws` - WebSocket for real-time updates
+
+### UI Architecture
+
+```
+vault-node binary
+    |
+    +---> --tui flag ---------> TUI (ratatui)
+    |                              |
+    +---> --dashboard-port ---> Web Dashboard (axum + Vue.js)
+    |                              |
+    +------------------------------+
+               |
+       NodeDashboardApi (shared in vault-core)
+               |
+    +----------+----------+
+    |          |          |
+ Storage   Network   Economics
+```
+
+### TUI Features
+
+- 4 tabs: Overview, Storage, Network, Economics
+- Real-time 1-second refresh
+- Keyboard navigation: Tab/Arrow keys, 1-4 number keys, q to quit
+- Sparkline charts for time-series data
+- Gauges for capacity visualization
+
+### Web Dashboard Features
+
+- Real-time updates via WebSocket
+- Responsive grid layout with Tailwind CSS
+- Dark theme optimized for monitoring
+- Interactive charts and gauges
+
 ## Architecture Overview
 
 SolanaVault is a **fully decentralized network** with economic incentives:

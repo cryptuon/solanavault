@@ -16,3 +16,21 @@ anyhow = { workspace = true }
 clap = { workspace = true }
 env_logger = { workspace = true }
 log = { workspace = true }
+async-trait = { workspace = true }
+
+# TUI dependencies
+ratatui = { version = "0.28", optional = true }
+crossterm = { version = "0.28", optional = true }
+
+# Web Dashboard dependencies
+axum = { version = "0.7", features = ["ws"], optional = true }
+tower = { version = "0.5", optional = true }
+tower-http = { version = "0.5", features = ["cors", "fs"], optional = true }
+rust-embed = { version = "8.0", optional = true }
+mime_guess = { version = "2.0", optional = true }
+
+[features]
+default = []
+tui = ["dep:ratatui", "dep:crossterm"]
+dashboard = ["dep:axum", "dep:tower", "dep:tower-http", "dep:rust-embed", "dep:mime_guess"]
+full = ["tui", "dashboard"]

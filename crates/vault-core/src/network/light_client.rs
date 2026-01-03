@@ -84,7 +84,7 @@ pub struct PaymentRecord {
     pub confirmed: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum ServiceType {
     BlockRetrieval,
     TransactionSubmission,
@@ -283,13 +283,16 @@ impl LightClient {
     async fn discover_gateways(&self) -> Result<(), TransportError> {
         println!("🔍 Discovering SolanaVault gateway nodes...");
 
-        // In production, this would use DHT or bootstrap nodes
-        // For now, use hardcoded gateways
-        let gateway_addresses = vec![
-            "tcp://gateway1.solanavault.com:4040",
-            "tcp://gateway2.solanavault.com:4040",
-            "tcp://gateway3.solanavault.com:4040",
-        ];
+        // Use environment variable for gateway configuration, fallback to defaults
+        // Set VAULT_GATEWAY_NODES="tcp://node1:4040,tcp://node2:4040" to customize
+        let gateway_addresses: Vec<&str> = std::env::var("VAULT_GATEWAY_NODES")
+            .ok()
+            .map(|s| s.leak().split(',').collect())
+            .unwrap_or_else(|| vec![
+                "tcp://gateway1.solanavault.com:4040",
+                "tcp://gateway2.solanavault.com:4040",
+                "tcp://gateway3.solanavault.com:4040",
+            ]);
 
         let mut gateways = self.gateways.write().await;
 
@@ -335,7 +338,10 @@ impl LightClient {
             }
             (GatewayStrategy::Fastest, _) | (_, RequestPriority::High) => {
                 gateways.values()
-                    .min_by(|a, b| a.response_time_ms.partial_cmp(&b.response_time_ms).unwrap())
+                    .min_by(|a, b| {
+                        a.response_time_ms.partial_cmp(&b.response_time_ms)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    })
             }
             (GatewayStrategy::Balanced, _) => {
                 // Score based on cost and performance
@@ -343,7 +349,8 @@ impl LightClient {
                     .min_by(|a, b| {
                         let score_a = (a.pricing.base_fee as f64) + (a.response_time_ms * 2.0);
                         let score_b = (b.pricing.base_fee as f64) + (b.response_time_ms * 2.0);
-                        score_a.partial_cmp(&score_b).unwrap()
+                        score_a.partial_cmp(&score_b)
+                            .unwrap_or(std::cmp::Ordering::Equal)
                     })
             }
             (GatewayStrategy::Preferred(preferred), _) => {
@@ -457,11 +464,51 @@ impl LightClient {
         // Gateway health monitoring
         let gateways = self.gateways.clone();
         tokio::spawn(async move {
-            let mut interval = interval(Duration::from_secs(60));
+            let mut interval_timer = interval(Duration::from_secs(60));
             loop {
-                interval.tick().await;
-                // TODO: Ping gateways and update health metrics
-                println!("🔍 Monitoring gateway health");
+                interval_timer.tick().await;
+
+                // Ping each gateway and update health metrics
+                let mut gateways_write = gateways.write().await;
+                let gateway_ids: Vec<String> = gateways_write.keys().cloned().collect();
+
+                for gateway_id in gateway_ids {
+                    if let Some(gateway) = gateways_write.get_mut(&gateway_id) {
+                        let start_time = std::time::Instant::now();
+
+                        // Simulate ping by checking if address is reachable
+                        // In production, this would send an actual health check request
+                        let is_healthy = tokio::time::timeout(
+                            Duration::from_secs(5),
+                            async {
+                                // Simple connectivity check - attempt TCP connect
+                                let addr = gateway.address.trim_start_matches("tcp://");
+                                tokio::net::TcpStream::connect(addr).await.is_ok()
+                            }
+                        ).await.unwrap_or(false);
+
+                        let response_time = start_time.elapsed().as_secs_f64() * 1000.0;
+
+                        // Update gateway health metrics
+                        if is_healthy {
+                            gateway.response_time_ms = response_time;
+                            // Slightly increase reputation for healthy gateways
+                            gateway.reputation = (gateway.reputation * 0.99 + 1.0 * 0.01).min(1.0);
+                            log::debug!("Gateway {} healthy: {:.1}ms", gateway_id, response_time);
+                        } else {
+                            // Decrease reputation for unhealthy gateways
+                            gateway.reputation = (gateway.reputation * 0.95).max(0.0);
+                            gateway.response_time_ms = f64::MAX;
+                            log::warn!("Gateway {} unreachable", gateway_id);
+                        }
+                    }
+                }
+
+                let healthy_count = gateways_write.values()
+                    .filter(|g| g.reputation > 0.5)
+                    .count();
+                log::debug!("🔍 Gateway health check: {}/{} healthy",
+                    healthy_count, gateways_write.len());
             }
         });
 
@@ -478,9 +525,88 @@ impl LightClient {
     }
 
     async fn start_ipc_server(&self) -> Result<(), TransportError> {
-        println!("🔌 Starting IPC server at {:?}", self.config.ipc_path);
-        // TODO: Implement actual IPC server (Unix domain socket or named pipe)
-        // This would listen for local application requests
+        let ipc_path = self.config.ipc_path.clone();
+        println!("🔌 Starting IPC server at {:?}", ipc_path);
+
+        // Remove existing socket file if it exists
+        if ipc_path.exists() {
+            let _ = std::fs::remove_file(&ipc_path);
+        }
+
+        // Create parent directories if needed
+        if let Some(parent) = ipc_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+
+        // Start Unix domain socket listener for IPC
+        #[cfg(unix)]
+        {
+            use tokio::net::UnixListener;
+            use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+
+            let listener = UnixListener::bind(&ipc_path)
+                .map_err(|e| TransportError::BindFailed(format!("IPC bind failed: {}", e)))?;
+
+            println!("✅ IPC server listening on {:?}", ipc_path);
+
+            tokio::spawn(async move {
+                loop {
+                    match listener.accept().await {
+                        Ok((stream, _)) => {
+                            tokio::spawn(async move {
+                                let (reader, mut writer) = stream.into_split();
+                                let mut reader = BufReader::new(reader);
+                                let mut line = String::new();
+
+                                // Read JSON-RPC request
+                                if let Ok(n) = reader.read_line(&mut line).await {
+                                    if n > 0 {
+                                        // Parse and process request
+                                        let response = match serde_json::from_str::<serde_json::Value>(&line) {
+                                            Ok(request) => {
+                                                // Handle RPC request - route to gateway
+                                                let method = request.get("method")
+                                                    .and_then(|m| m.as_str())
+                                                    .unwrap_or("unknown");
+                                                log::debug!("IPC request: {}", method);
+
+                                                // Return placeholder response
+                                                serde_json::json!({
+                                                    "jsonrpc": "2.0",
+                                                    "id": request.get("id").cloned().unwrap_or(serde_json::Value::Null),
+                                                    "result": { "status": "ok", "message": "Request received" }
+                                                })
+                                            }
+                                            Err(e) => {
+                                                serde_json::json!({
+                                                    "jsonrpc": "2.0",
+                                                    "id": null,
+                                                    "error": { "code": -32700, "message": format!("Parse error: {}", e) }
+                                                })
+                                            }
+                                        };
+
+                                        // Send response
+                                        let response_str = serde_json::to_string(&response).unwrap_or_default();
+                                        let _ = writer.write_all(response_str.as_bytes()).await;
+                                        let _ = writer.write_all(b"\n").await;
+                                    }
+                                }
+                            });
+                        }
+                        Err(e) => {
+                            log::warn!("IPC accept error: {}", e);
+                        }
+                    }
+                }
+            });
+        }
+
+        #[cfg(not(unix))]
+        {
+            log::warn!("IPC server not supported on this platform");
+        }
+
         Ok(())
     }
 }
@@ -571,6 +697,6 @@ impl RequestCache {
 fn current_timestamp() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .unwrap()
+        .unwrap_or_default()
         .as_secs()
 }

@@ -52,7 +52,7 @@ impl InstructionTemplateEngine {
 
             for (template_id, template) in &self.templates {
                 if let Some(match_len) = self.try_match_template(template, &data[offset..]) {
-                    if best_match.is_none() || match_len > best_match.unwrap().1 {
+                    if best_match.map_or(true, |(_id, len)| match_len > len) {
                         best_match = Some((*template_id, match_len));
                     }
                 }
@@ -62,7 +62,7 @@ impl InstructionTemplateEngine {
             for (idx, template) in self.builtin_templates.iter().enumerate() {
                 if let Some(match_len) = self.try_match_template(template, &data[offset..]) {
                     let template_id = idx as u32; // Builtin templates use indices 0-999
-                    if best_match.is_none() || match_len > best_match.unwrap().1 {
+                    if best_match.map_or(true, |(_id, len)| match_len > len) {
                         best_match = Some((template_id, match_len));
                     }
                 }

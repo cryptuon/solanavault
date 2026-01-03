@@ -496,6 +496,45 @@ export RUST_BACKTRACE=1
 
 ---
 
+## Dashboard Configuration
+
+Enable TUI and/or Web Dashboard with CLI flags:
+
+```bash
+# TUI mode (requires tui feature)
+./vault-node --tui
+
+# Web dashboard (requires dashboard feature)
+./vault-node --dashboard-port 3000
+
+# Both simultaneously (requires full feature)
+./vault-node --tui --dashboard-port 3000
+```
+
+### Dashboard CLI Flags
+
+| Flag | Description |
+|------|-------------|
+| `--tui` | Enable terminal user interface |
+| `--dashboard-port <port>` | Enable web dashboard on specified port |
+
+### Building with Dashboard Features
+
+```bash
+# TUI only
+cargo build -p vault-node --features tui --release
+
+# Web dashboard only
+cargo build -p vault-node --features dashboard --release
+
+# Both features
+cargo build -p vault-node --features full --release
+```
+
+See [Node Dashboard Guide](../guides/node-dashboard.md) for complete documentation.
+
+---
+
 ## Command Line Flags
 
 Common flags available for all binaries:
@@ -505,6 +544,8 @@ Common flags available for all binaries:
 | `--config <path>` | Configuration file path |
 | `--log-level <level>` | Log level override |
 | `--data-path <path>` | Data directory override |
+| `--tui` | Enable TUI mode (vault-node) |
+| `--dashboard-port <port>` | Enable web dashboard (vault-node) |
 | `-v, --verbose` | Increase verbosity |
 | `-q, --quiet` | Decrease verbosity |
 | `--version` | Show version |

@@ -337,6 +337,14 @@ parallel_downloads = 8
 
 ## Monitoring
 
+SolanaVault provides multiple monitoring options:
+
+- **TUI Dashboard**: Terminal-based interface with `--tui` flag
+- **Web Dashboard**: Browser-based interface with `--dashboard-port PORT`
+- **REST API**: Programmatic access to node metrics
+
+See the [Node Dashboard Guide](node-dashboard.md) for complete dashboard documentation.
+
 ### Status Endpoint
 
 ```bash
@@ -497,6 +505,7 @@ vault-node sync reset --from-checkpoint
 
 ## Next Steps
 
+- [Node Dashboard](node-dashboard.md) - Monitor your node with TUI or Web Dashboard
 - [Gateway Operators Guide](gateway-operators.md) - Also run a gateway
 - [Network Architecture](../architecture/network.md) - Understand the protocol
 - [Economics](../architecture/economics.md) - Learn about rewards

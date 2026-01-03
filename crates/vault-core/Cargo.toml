@@ -25,7 +25,7 @@ zstd = "0.13"
 log = { workspace = true }
 rand = { workspace = true }
 bs58 = "0.4"
-blockchain-compression = { path = "../../../blockchain-compression", features = ["zstd"] }
+blockchain-compression = { path = "/home/dipankar/Code/blockchain-compression", features = ["zstd"] }
 bytes = "1.5"
 # P2P networking and transport
 nng = { workspace = true }
@@ -33,6 +33,10 @@ uuid = { workspace = true }
 sha2 = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
+# Production logging and observability
+tracing = { workspace = true }
+# Metrics
+metrics = { workspace = true }
 
 [dev-dependencies]
 env_logger = { workspace = true }

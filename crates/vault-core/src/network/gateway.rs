@@ -271,7 +271,7 @@ impl GatewayNode {
                             "networkNodes": 42
                         }
                     }))
-                    .map_err(|e| format!("Block retrieval failed: {}", e).into())
+                    .map_err(|e| -> Box<dyn std::error::Error> { format!("Block retrieval failed: {}", e).into() })
             }
             _ => {
                 Ok(serde_json::json!({
@@ -403,8 +403,47 @@ impl GatewayNode {
     }
 
     async fn start_client_listener(&self) -> Result<(), Box<dyn std::error::Error>> {
-        println!("🔌 Starting client listener on {}", self.gateway_config.client_endpoint);
-        // TODO: Implement actual TCP/WebSocket server for client connections
+        let endpoint = self.gateway_config.client_endpoint.clone();
+        println!("🔌 Starting client listener on {}", endpoint);
+
+        // Parse the endpoint to extract host and port
+        let addr = endpoint
+            .trim_start_matches("tcp://")
+            .trim_start_matches("http://")
+            .trim_start_matches("https://")
+            .to_string();
+
+        // Start a basic TCP listener for client connections
+        // In production, this would be replaced with a full Axum/WebSocket server
+        let addr_clone = addr.clone();
+        tokio::spawn(async move {
+            match tokio::net::TcpListener::bind(&addr).await {
+                Ok(listener) => {
+                    println!("✅ Client listener started on {}", addr_clone);
+
+                    loop {
+                        match listener.accept().await {
+                            Ok((socket, peer_addr)) => {
+                                log::debug!("📥 New client connection from: {}", peer_addr);
+                                // Handle client connection in background
+                                tokio::spawn(async move {
+                                    // Connection handling would go here
+                                    // For now, just log and close
+                                    drop(socket);
+                                });
+                            }
+                            Err(e) => {
+                                log::warn!("Failed to accept client connection: {}", e);
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    log::error!("Failed to start client listener on {}: {}", addr, e);
+                }
+            }
+        });
+
         Ok(())
     }
 }
@@ -464,12 +503,51 @@ impl PricingEngine {
             return;
         }
 
-        let mut interval = interval(self.config.dynamic_pricing.adjustment_interval);
-        loop {
-            interval.tick().await;
-            // TODO: Update load metrics and adjust pricing
-            println!("⚖️  Adjusting dynamic pricing based on demand");
-        }
+        let current_load = self.current_load.clone();
+        let demand_history = self.demand_history.clone();
+        let adjustment_interval = self.config.dynamic_pricing.adjustment_interval;
+
+        tokio::spawn(async move {
+            let mut interval_timer = interval(adjustment_interval);
+            loop {
+                interval_timer.tick().await;
+
+                // Calculate new load based on demand history
+                let mut history = demand_history.write().await;
+                let now = current_timestamp();
+
+                // Remove old demand entries (older than 5 minutes)
+                history.retain(|dp| now.saturating_sub(dp.timestamp) < 300);
+
+                // Calculate average load from recent data points
+                let request_count = history.len();
+                let total_rpm: f64 = history.iter().map(|dp| dp.requests_per_minute).sum();
+                let load = if request_count > 0 {
+                    (total_rpm / request_count as f64 / 100.0).min(1.0) // Normalize to 0-1 range
+                } else {
+                    0.0
+                };
+
+                // Update current load
+                {
+                    let mut current = current_load.write().await;
+                    *current = load;
+                }
+
+                log::debug!("⚖️ Dynamic pricing: load={:.2}, data_points={}", load, request_count);
+            }
+        });
+    }
+
+    /// Record a request for demand tracking
+    pub async fn record_request(&self) {
+        let mut history = self.demand_history.write().await;
+        history.push(DemandDataPoint {
+            timestamp: current_timestamp(),
+            requests_per_minute: 1.0, // Single request recorded
+            average_response_time: 0.0,
+            queue_length: 0,
+        });
     }
 }
 
@@ -488,9 +566,20 @@ impl PaymentProcessor {
             let gateway_fee = payment.amount * 95 / 100; // 95% to gateway
             let network_fee = payment.amount - gateway_fee; // 5% to network
 
+            // Extract client_id from payment - use gateway as client identifier
+            // or derive from payment_id if gateway is not meaningful
+            let client_id = if payment.gateway.is_empty() {
+                // Derive client ID from payment_id prefix
+                payment.payment_id.split('-').next()
+                    .unwrap_or("unknown")
+                    .to_string()
+            } else {
+                payment.gateway.clone()
+            };
+
             let confirmed = ConfirmedPayment {
                 payment_id: payment.payment_id,
-                client_id: "client".to_string(), // TODO: Extract from payment
+                client_id,
                 amount: payment.amount,
                 service_type: payment.service_type,
                 confirmed_at: current_timestamp(),
@@ -556,6 +645,6 @@ pub struct GatewayStats {
 fn current_timestamp() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .unwrap()
+        .unwrap_or_default()
         .as_secs()
 }

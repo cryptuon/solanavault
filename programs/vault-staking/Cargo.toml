@@ -1,0 +1,22 @@
+[package]
+name = "vault-staking"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "VAULT Staking Program - Node staking with tiers and unbonding"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "vault_staking"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { workspace = true }
+anchor-spl = { workspace = true }

@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0f3460;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00d9ff;
+}
+
+/* Card animations */
+.card {
+  @apply bg-vault-darker rounded-lg p-6 transition-all duration-200;
+}
+
+.card:hover {
+  @apply shadow-lg;
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
+}
+
+/* Status indicator pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Gauge styles */
+.gauge-bar {
+  @apply h-4 rounded-full overflow-hidden bg-vault-accent;
+}
+
+.gauge-fill {
+  @apply h-full transition-all duration-500 ease-out;
+}

@@ -45,11 +45,14 @@ SolanaVault is now a **complete decentralized network** with:
 ### 🔬 Research & Technical Papers
 - **[Compression Algorithms](research/compression-algorithms.md)** - Technical details on compression algorithms
 - **[Economics Model](research/economics.md)** - Tokenomics and incentive mechanisms
+- **[Tokenomics](../documentation/docs/architecture/tokenomics.md)** - Complete token distribution and vesting
 - **[Whitepaper](research/whitepaper/README.md)** - Academic whitepaper and research
 
 ## 💰 Economic Model
 
-SolanaVault operates on a sustainable **pay-per-use model**:
+SolanaVault operates on a sustainable **pay-per-use model** powered by the **VAULT token**:
+
+> **Token Details**: 1B total supply, 40% for network rewards, 14-day unbonding period. See [complete tokenomics](../documentation/docs/architecture/tokenomics.md).
 
 ### For Developers
 - **Light clients** pay micro-tokens for network access

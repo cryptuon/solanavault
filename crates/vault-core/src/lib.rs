@@ -23,8 +23,8 @@ pub mod workflows;
 /// Memory management with RocksDB and optimized caching
 pub mod memory;
 
-/// API layer for external interfaces (placeholder)
-// pub mod api;
+/// Dashboard API for TUI and Web interfaces
+pub mod dashboard;
 
 /// Re-exports for convenient access to core types
 pub use compression::{CompressionStrategy, BlockchainCompressionAdapter};
@@ -32,3 +32,4 @@ pub use storage::StorageNode;
 pub use data::{SolanaBlockClient, BlockCache};
 pub use workflows::CompressionWorkflow;
 pub use memory::{VaultStorageEngine, VaultCacheManager, VaultMemoryPool, MemoryMetrics, PerformanceTracker};
+pub use dashboard::{NodeDashboardApi, DashboardSnapshot, MetricsHistory};

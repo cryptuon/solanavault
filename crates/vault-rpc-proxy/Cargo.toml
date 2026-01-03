@@ -16,6 +16,15 @@ anyhow = { workspace = true }
 warp = "0.3"
 reqwest = { version = "0.11", features = ["json"] }
 uuid = { version = "1.0", features = ["v4"] }
+# Production logging and observability
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+# Rate limiting
+governor = { workspace = true }
+nonzero_ext = "0.3"
+# Metrics
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
 
 [[bin]]
 name = "vault-rpc-proxy"

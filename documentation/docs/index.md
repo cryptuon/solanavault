@@ -160,4 +160,5 @@ Get started in under 5 minutes:
 - [Quick Start Guide](guides/quickstart.md) - Get up and running in minutes
 - [Installation](guides/installation.md) - Detailed installation instructions
 - [Architecture Overview](architecture/overview.md) - Deep dive into how it works
+- [Tokenomics](architecture/tokenomics.md) - Token distribution and economics
 - [API Reference](reference/api.md) - Complete API documentation

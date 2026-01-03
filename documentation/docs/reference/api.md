@@ -283,6 +283,142 @@ curl http://localhost:8899/client/stats
 
 ---
 
+## Node Dashboard API
+
+The vault-node provides a built-in dashboard API for monitoring node metrics. Enable with `--dashboard-port PORT`.
+
+### Dashboard Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Health check |
+| `/api/stats` | GET | Full node statistics |
+| `/api/storage` | GET | Storage metrics only |
+| `/api/network` | GET | Network metrics only |
+| `/api/economics` | GET | Economics metrics only |
+| `/api/history` | GET | Metrics history for charts |
+| `/ws` | WebSocket | Real-time updates (1s interval) |
+
+### GET /api/stats
+
+Returns complete node statistics.
+
+```bash
+curl http://localhost:3000/api/stats | jq
+```
+
+**Response:**
+
+```json
+{
+  "timestamp": 1704067200,
+  "node_info": {
+    "node_id": "my-node",
+    "address": "127.0.0.1:8080",
+    "version": "0.1.0",
+    "uptime_seconds": 3600,
+    "status": "Running"
+  },
+  "storage": {
+    "total_capacity": 107374182400,
+    "used_capacity": 5368709120,
+    "available_capacity": 102005473280,
+    "blocks_stored": 150,
+    "compression_ratio": 18.5,
+    "total_original_bytes": 1073741824,
+    "total_compressed_bytes": 58041905,
+    "cache_hits": 1250,
+    "cache_misses": 87,
+    "cache_hit_rate": 0.935
+  },
+  "network": {
+    "total_peers": 50,
+    "connected_peers": 45,
+    "messages_sent": 12500,
+    "messages_received": 14200,
+    "bandwidth_in_bytes": 0,
+    "bandwidth_out_bytes": 0,
+    "average_latency_ms": 0.0
+  },
+  "economics": {
+    "staking": {
+      "total_staked": 100000000,
+      "own_stake": 10000000,
+      "pending_rewards": 50000,
+      "performance_score": 1.05,
+      "base_apy": 0.12
+    },
+    "rewards": {
+      "total_earned": 250000,
+      "distributed_this_epoch": 5000,
+      "epochs_completed": 50
+    },
+    "gateway": null
+  },
+  "consensus": {
+    "active_proposals": 2,
+    "votes_cast": 500,
+    "proposals_accepted": 480,
+    "proposals_rejected": 15,
+    "reputation_score": 0.98
+  }
+}
+```
+
+### GET /api/storage
+
+Returns storage metrics only.
+
+```bash
+curl http://localhost:3000/api/storage
+```
+
+### GET /api/network
+
+Returns network metrics only.
+
+```bash
+curl http://localhost:3000/api/network
+```
+
+### GET /api/economics
+
+Returns economics metrics only.
+
+```bash
+curl http://localhost:3000/api/economics
+```
+
+### GET /api/history
+
+Returns time-series data for charts.
+
+```bash
+curl http://localhost:3000/api/history
+```
+
+### WebSocket Real-time Updates
+
+Connect to `/ws` for real-time metric updates (1-second interval).
+
+```javascript
+const ws = new WebSocket('ws://localhost:3000/ws');
+
+ws.onopen = () => {
+  console.log('Connected to dashboard');
+};
+
+ws.onmessage = (event) => {
+  const snapshot = JSON.parse(event.data);
+  console.log('Storage used:', snapshot.storage.used_capacity);
+  console.log('Compression ratio:', snapshot.storage.compression_ratio);
+};
+```
+
+For complete dashboard documentation, see [Node Dashboard Guide](../guides/node-dashboard.md).
+
+---
+
 ## Rust Library API
 
 ### Compression

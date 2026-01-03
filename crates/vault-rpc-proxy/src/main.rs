@@ -6,8 +6,16 @@ use warp::Filter;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::sync::Arc;
+use std::net::SocketAddr;
+use std::num::NonZeroU32;
 use tokio::sync::Mutex;
 use vault_core::{CompressionWorkflow, BlockchainCompressionAdapter, CompressionStrategy};
+use tracing::{info, warn, error, debug, instrument};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use governor::{Quota, RateLimiter};
+use nonzero_ext::nonzero;
+use metrics::{counter, gauge, histogram};
+use metrics_exporter_prometheus::PrometheusBuilder;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct RpcRequest {
@@ -54,10 +62,14 @@ pub struct NetworkMetrics {
 
 impl VaultNetwork {
     pub fn new() -> Self {
+        // Use SOLANA_RPC_URL environment variable if set, otherwise use mainnet default
+        let upstream_rpc = std::env::var("SOLANA_RPC_URL")
+            .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".to_string());
+
         Self {
             compression_workflow: CompressionWorkflow::new(),
             metrics: NetworkMetrics::default(),
-            upstream_rpc: "https://api.mainnet-beta.solana.com".to_string(),
+            upstream_rpc,
         }
     }
 
@@ -153,7 +165,7 @@ impl VaultNetwork {
             "rewards": [],
             "blockTime": std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
+                .expect("system clock before UNIX_EPOCH")
                 .as_secs() - (245000505 - slot) * 400 / 1000,
             "proxiedFromUpstream": true
         }))
@@ -302,23 +314,68 @@ impl VaultNetwork {
 
 type SharedVaultNetwork = Arc<Mutex<VaultNetwork>>;
 
+/// Global rate limiter for RPC requests (100 requests per second)
+type SharedRateLimiter = Arc<RateLimiter<governor::state::NotKeyed, governor::state::InMemoryState, governor::clock::DefaultClock>>;
+
+fn init_tracing() {
+    // Initialize tracing subscriber with env filter
+    let env_filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info,vault_core=debug,vault_rpc_proxy=debug"));
+
+    tracing_subscriber::registry()
+        .with(env_filter)
+        .with(tracing_subscriber::fmt::layer()
+            .with_target(true)
+            .with_thread_ids(true)
+            .with_file(true)
+            .with_line_number(true))
+        .init();
+}
+
+/// Prometheus metrics handle for serving /metrics endpoint
+type PrometheusHandle = metrics_exporter_prometheus::PrometheusHandle;
+
+fn init_metrics() -> PrometheusHandle {
+    // Install Prometheus recorder and return handle for rendering metrics
+    let builder = PrometheusBuilder::new();
+    builder.install_recorder()
+        .expect("failed to install Prometheus recorder")
+}
+
 #[tokio::main]
 async fn main() {
-    println!("🚀 SolanaVault RPC Proxy - Production Network Starting...");
-    println!("=======================================================");
+    // Initialize structured logging
+    init_tracing();
+
+    // Initialize Prometheus metrics
+    let metrics_handle = init_metrics();
+
+    info!("🚀 SolanaVault RPC Proxy - Production Network Starting...");
+    info!("=======================================================");
+
+    // Initialize rate limiter: 100 requests per second
+    let rate_limiter: SharedRateLimiter = Arc::new(RateLimiter::direct(
+        Quota::per_second(nonzero!(100u32))
+    ));
 
     // Initialize the vault network with real compression
     let vault_network = Arc::new(Mutex::new(VaultNetwork::new()));
 
+    // Record initial gauge values
+    gauge!("vault_connected_peers", 0.0);
+    gauge!("vault_storage_capacity_bytes", 100.0 * 1024.0 * 1024.0 * 1024.0);
+
     // Clone for the routes
     let vault_for_rpc = vault_network.clone();
     let vault_for_stats = vault_network.clone();
+    let limiter_for_rpc = rate_limiter.clone();
 
-    // RPC route with real compression functionality
+    // RPC route with real compression functionality and rate limiting
     let rpc_route = warp::post()
         .and(warp::path("rpc"))
         .and(warp::body::json())
         .and(warp::any().map(move || vault_for_rpc.clone()))
+        .and(warp::any().map(move || limiter_for_rpc.clone()))
         .and_then(handle_rpc_request);
 
     // Stats route for monitoring
@@ -330,47 +387,91 @@ async fn main() {
             Ok::<_, warp::Rejection>(warp::reply::json(&network.get_network_stats()))
         });
 
+    // Prometheus metrics endpoint
+    let metrics_route = warp::get()
+        .and(warp::path("metrics"))
+        .map(move || {
+            let metrics_output = metrics_handle.render();
+            warp::reply::with_header(metrics_output, "content-type", "text/plain; charset=utf-8")
+        });
+
     // Health route
     let health_route = warp::get()
         .and(warp::path::end())
         .map(|| "🏦 SolanaVault RPC Proxy - Network is LIVE! 🚀");
 
-    let routes = health_route.or(stats_route).or(rpc_route);
+    let routes = health_route.or(stats_route).or(metrics_route).or(rpc_route);
 
-    println!("✅ Blockchain compression initialized");
-    println!("✅ Historical block storage ready");
-    println!("✅ RPC proxy routes configured");
-    println!();
-    println!("🌐 Server listening on http://127.0.0.1:3030");
-    println!("📊 Stats available at http://127.0.0.1:3030/stats");
-    println!("🚀 Ready to serve compressed historical blocks!");
+    info!("✅ Blockchain compression initialized");
+    info!("✅ Historical block storage ready");
+    info!("✅ RPC proxy routes configured");
+    info!("✅ Rate limiting: 100 req/s");
+    info!("✅ Prometheus metrics: /metrics");
+    info!("");
+    info!("🌐 Server listening on http://127.0.0.1:3030");
+    info!("📊 Stats available at http://127.0.0.1:3030/stats");
+    info!("📈 Metrics available at http://127.0.0.1:3030/metrics");
+    info!("🚀 Ready to serve compressed historical blocks!");
 
     warp::serve(routes)
         .run(([127, 0, 0, 1], 3030))
         .await;
 }
 
+#[instrument(skip(vault_network, rate_limiter), fields(method = %req.method))]
 async fn handle_rpc_request(
     req: RpcRequest,
     vault_network: SharedVaultNetwork,
+    rate_limiter: SharedRateLimiter,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("📨 RPC Request: {} {:?}", req.method, req.params);
+    let start_time = std::time::Instant::now();
+    let method = req.method.clone();
+
+    // Record request metric
+    counter!("vault_rpc_requests_total", 1, "method" => method.clone());
+
+    // Check rate limit
+    if rate_limiter.check().is_err() {
+        warn!("Rate limit exceeded for request");
+        counter!("vault_rate_limit_exceeded_total", 1);
+        let response = RpcResponse {
+            jsonrpc: req.jsonrpc,
+            id: req.id,
+            result: None,
+            error: Some(RpcError {
+                code: -32005,
+                message: "Rate limit exceeded. Please slow down.".to_string(),
+            }),
+        };
+        return Ok(warp::reply::json(&response));
+    }
+
+    // Log request
+    debug!(method = %req.method, params = ?req.params, "Processing RPC request");
 
     let result = match req.method.as_str() {
         "getConfirmedBlock" | "getBlock" => {
             let slot = extract_slot_from_params(&req.params);
             if let Some(slot) = slot {
+                debug!(slot = slot, "Fetching block");
                 // Use async mutex
                 let mut network = vault_network.lock().await;
                 let result = network.handle_get_confirmed_block(slot).await;
                 match result {
-                    Ok(block_data) => Some(block_data),
+                    Ok(block_data) => {
+                        debug!(slot = slot, "Block served successfully");
+                        counter!("vault_blocks_served_total", 1, "type" => "success");
+                        Some(block_data)
+                    }
                     Err(e) => {
-                        eprintln!("❌ Error handling block request: {}", e);
+                        error!(error = %e, slot = slot, "Failed to handle block request");
+                        counter!("vault_blocks_served_total", 1, "type" => "error");
                         None
                     }
                 }
             } else {
+                warn!("Invalid slot parameter in request");
+                counter!("vault_rpc_errors_total", 1, "type" => "invalid_params");
                 Some(serde_json::json!({
                     "error": "Invalid slot parameter"
                 }))
@@ -388,12 +489,18 @@ async fn handle_rpc_request(
             }))
         },
         _ => {
+            debug!(method = %req.method, "Proxying unknown method to upstream");
+            counter!("vault_rpc_proxied_total", 1);
             Some(serde_json::json!({
                 "message": format!("Method {} proxied to upstream", req.method),
                 "note": "SolanaVault handles historical blocks with compression"
             }))
         }
     };
+
+    // Record request duration
+    let duration_ms = start_time.elapsed().as_secs_f64() * 1000.0;
+    histogram!("vault_rpc_request_duration_ms", duration_ms, "method" => method);
 
     let response = RpcResponse {
         jsonrpc: req.jsonrpc,

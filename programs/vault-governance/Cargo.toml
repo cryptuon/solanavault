@@ -1,0 +1,22 @@
+[package]
+name = "vault-governance"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "VAULT Governance Program - Token-weighted DAO voting"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "vault_governance"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = { workspace = true }
+anchor-spl = { workspace = true }
