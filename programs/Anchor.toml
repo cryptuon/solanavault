@@ -3,22 +3,22 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-vault_token = "VTKNxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_staking = "VSTKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_rewards = "VRWDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_governance = "VGOVxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+vault_token = "11111111111111111111111111111112"
+vault_staking = "11111111111111111111111111111113"
+vault_rewards = "11111111111111111111111111111114"
+vault_governance = "11111111111111111111111111111115"
 
 [programs.devnet]
-vault_token = "VTKNxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_staking = "VSTKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_rewards = "VRWDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_governance = "VGOVxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+vault_token = "11111111111111111111111111111112"
+vault_staking = "11111111111111111111111111111113"
+vault_rewards = "11111111111111111111111111111114"
+vault_governance = "11111111111111111111111111111115"
 
 [programs.mainnet]
-vault_token = "VTKNxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_staking = "VSTKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_rewards = "VRWDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-vault_governance = "VGOVxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+vault_token = "11111111111111111111111111111112"
+vault_staking = "11111111111111111111111111111113"
+vault_rewards = "11111111111111111111111111111114"
+vault_governance = "11111111111111111111111111111115"
 
 [registry]
 url = "https://api.apr.dev"

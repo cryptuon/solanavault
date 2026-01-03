@@ -11,7 +11,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo, Burn};
 
-declare_id!("VTKNxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+declare_id!("11111111111111111111111111111112");
 
 /// Total supply cap: 1 billion tokens with 9 decimals
 pub const TOTAL_SUPPLY_CAP: u64 = 1_000_000_000 * 1_000_000_000; // 1B * 10^9
@@ -56,27 +56,28 @@ pub mod vault_token {
         ctx: Context<MintTokens>,
         amount: u64,
     ) -> Result<()> {
-        let token_config = &mut ctx.accounts.token_config;
-
         // Check total supply cap
+        let total_minted = ctx.accounts.token_config.total_minted;
+        let bump = ctx.accounts.token_config.bump;
+
         require!(
-            token_config.total_minted.checked_add(amount).unwrap() <= TOTAL_SUPPLY_CAP,
+            total_minted.checked_add(amount).unwrap() <= TOTAL_SUPPLY_CAP,
             VaultTokenError::SupplyCapExceeded
         );
 
         // Check emission schedule
         let current_time = Clock::get()?.unix_timestamp as u64;
-        let allowed_emission = token_config.calculate_allowed_emission(current_time)?;
+        let allowed_emission = ctx.accounts.token_config.calculate_allowed_emission(current_time)?;
 
         require!(
-            token_config.total_minted.checked_add(amount).unwrap() <= allowed_emission,
+            total_minted.checked_add(amount).unwrap() <= allowed_emission,
             VaultTokenError::EmissionScheduleExceeded
         );
 
         // Mint tokens
         let seeds = &[
             b"token_config".as_ref(),
-            &[token_config.bump],
+            &[bump],
         ];
         let signer = &[&seeds[..]];
 
@@ -90,6 +91,8 @@ pub mod vault_token {
 
         token::mint_to(cpi_ctx, amount)?;
 
+        // Update minted amount
+        let token_config = &mut ctx.accounts.token_config;
         token_config.total_minted = token_config.total_minted.checked_add(amount).unwrap();
 
         emit!(TokensMinted {

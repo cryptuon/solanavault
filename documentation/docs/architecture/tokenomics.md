@@ -422,22 +422,44 @@ The economic model ensures:
 
 ---
 
-## Smart Contract Addresses
+## Smart Contracts
 
-> **Note:** Addresses will be published upon mainnet deployment
+The tokenomics are enforced on-chain through four Anchor programs. See [Smart Contracts](smart-contracts.md) for full documentation.
 
-| Contract | Address | Purpose |
-|----------|---------|---------|
-| VAULT Token | TBD | SPL Token mint |
-| Staking | TBD | Stake management |
-| Governance | TBD | DAO voting |
-| Treasury | TBD | Network fund |
-| Rewards | TBD | Emission distribution |
+| Program | Purpose | Status |
+|---------|---------|--------|
+| **vault-token** | SPL Token with 1B supply cap, emission schedule | Implemented |
+| **vault-staking** | Tiered staking, 14-day unbonding, slashing | Implemented |
+| **vault-rewards** | Epoch-based rewards, 95%/5% fee distribution | Implemented |
+| **vault-governance** | DAO voting with timelocks | Implemented |
+
+### Program IDs
+
+> **Note:** Placeholder IDs shown. Replace after deployment.
+
+| Program | Placeholder | Deployed |
+|---------|-------------|----------|
+| vault-token | `11111111111111111111111111111112` | TBD |
+| vault-staking | `11111111111111111111111111111113` | TBD |
+| vault-rewards | `11111111111111111111111111111114` | TBD |
+| vault-governance | `11111111111111111111111111111115` | TBD |
+
+### Key On-Chain Enforcements
+
+| Feature | Implementation |
+|---------|----------------|
+| Supply Cap | `TOTAL_SUPPLY_CAP = 1B * 10^9` in vault-token |
+| Emission Schedule | Time-based calculation in `TokenConfig` |
+| Staking Tiers | `StakingTier` enum with multipliers |
+| Unbonding Period | `UNBONDING_PERIOD = 14 days` |
+| Fee Split | `GATEWAY_FEE_SHARE = 95%` in vault-rewards |
+| Quorum Requirements | Per-proposal-type constants in governance |
 
 ---
 
 ## Related Documentation
 
+- [Smart Contracts](smart-contracts.md) - On-chain program details
 - [Economics Overview](economics.md) - Detailed pricing and fees
 - [Network Architecture](network.md) - How payments flow
 - [Gateway Operators Guide](../guides/gateway-operators.md) - Start earning

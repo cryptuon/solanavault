@@ -12,7 +12,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer, MintTo, Mint};
 
-declare_id!("VRWDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+declare_id!("11111111111111111111111111111114");
 
 /// Epoch duration: 24 hours in seconds
 pub const EPOCH_DURATION: i64 = 24 * 60 * 60;
@@ -94,19 +94,15 @@ pub mod vault_rewards {
         amount: u64,
         gateway_operator: Pubkey,
     ) -> Result<()> {
-        let rewards_config = &mut ctx.accounts.rewards_config;
-        let fee_record = &mut ctx.accounts.fee_record;
-
         // Calculate distribution
         let gateway_share = (amount * GATEWAY_FEE_SHARE) / 100;
         let network_share = amount - gateway_share;
 
-        // Transfer gateway share to gateway operator
-        let config_key = rewards_config.key();
+        // Extract needed values before CPI calls
+        let bump = ctx.accounts.rewards_config.bump;
         let seeds = &[
             b"rewards_config".as_ref(),
-            config_key.as_ref(),
-            &[rewards_config.bump],
+            &[bump],
         ];
         let signer = &[&seeds[..]];
 
@@ -132,6 +128,10 @@ pub mod vault_rewards {
             signer,
         );
         token::transfer(cpi_ctx_fund, network_share)?;
+
+        // Now get mutable references for state updates
+        let rewards_config = &mut ctx.accounts.rewards_config;
+        let fee_record = &mut ctx.accounts.fee_record;
 
         // Update fee record
         fee_record.total_fees += amount;
@@ -461,6 +461,7 @@ pub struct Initialize<'info> {
 
 #[derive(Accounts)]
 pub struct AdvanceEpoch<'info> {
+    #[account(mut)]
     pub authority: Signer<'info>,
 
     #[account(
@@ -486,6 +487,7 @@ pub struct AdvanceEpoch<'info> {
 
 #[derive(Accounts)]
 pub struct RecordFee<'info> {
+    #[account(mut)]
     pub payer: Signer<'info>,
 
     #[account(

@@ -11,7 +11,7 @@
 
 use anchor_lang::prelude::*;
 
-declare_id!("VGOVxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+declare_id!("11111111111111111111111111111115");
 
 /// Voting period: 3 days
 pub const VOTING_PERIOD: i64 = 3 * 24 * 60 * 60;
@@ -63,13 +63,13 @@ pub mod vault_governance {
     pub fn create_proposal(
         ctx: Context<CreateProposal>,
         proposal_type: ProposalType,
-        title: String,
-        description: String,
-        actions: Vec<ProposalAction>,
+        title: [u8; 64],
+        title_len: u8,
+        description_hash: [u8; 32],
+        action_programs: Vec<Pubkey>,
     ) -> Result<()> {
-        require!(title.len() <= 100, GovernanceError::TitleTooLong);
-        require!(description.len() <= 1000, GovernanceError::DescriptionTooLong);
-        require!(actions.len() <= 10, GovernanceError::TooManyActions);
+        require!(title_len <= 64, GovernanceError::TitleTooLong);
+        require!(action_programs.len() <= 5, GovernanceError::TooManyActions);
 
         // Verify proposer has minimum stake
         let proposer_stake = ctx.accounts.proposer_stake.staked_amount;
@@ -86,8 +86,17 @@ pub mod vault_governance {
         proposal.proposer = ctx.accounts.proposer.key();
         proposal.proposal_type = proposal_type.clone();
         proposal.title = title;
-        proposal.description = description;
-        proposal.actions = actions;
+        proposal.title_len = title_len;
+        proposal.description_hash = description_hash;
+        proposal.action_count = action_programs.len() as u8;
+
+        // Copy action programs to fixed array
+        let mut action_array = [Pubkey::default(); 5];
+        for (i, program) in action_programs.iter().enumerate() {
+            action_array[i] = *program;
+        }
+        proposal.action_programs = action_array;
+
         proposal.created_at = clock.unix_timestamp;
         proposal.voting_ends_at = clock.unix_timestamp + VOTING_PERIOD;
         proposal.votes_for = 0;
@@ -232,7 +241,7 @@ pub mod vault_governance {
             emit!(ProposalFinalized {
                 id: proposal.id,
                 status: ProposalStatus::Defeated,
-                reason: "Quorum not reached".to_string(),
+                approval_percentage: 0,
             });
             return Ok(());
         }
@@ -257,7 +266,7 @@ pub mod vault_governance {
             emit!(ProposalFinalized {
                 id: proposal.id,
                 status: ProposalStatus::Succeeded,
-                reason: format!("Approved with {}% votes", approval_percentage),
+                approval_percentage,
             });
         } else {
             proposal.status = ProposalStatus::Defeated;
@@ -265,7 +274,7 @@ pub mod vault_governance {
             emit!(ProposalFinalized {
                 id: proposal.id,
                 status: ProposalStatus::Defeated,
-                reason: format!("Only {}% approval, needed {}%", approval_percentage, proposal.approval_threshold),
+                approval_percentage,
             });
         }
 
@@ -471,21 +480,6 @@ impl Proposal {
         1;    // bump
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct ProposalAction {
-    /// Target program
-    pub program_id: Pubkey,
-    /// Instruction data
-    pub data: Vec<u8>,
-    /// Description of action
-    pub description: String,
-}
-
-impl ProposalAction {
-    pub const SIZE: usize = 32 + // program_id
-        (4 + 256) + // data (max 256 bytes)
-        (4 + 100);  // description (max 100 chars)
-}
 
 #[account]
 #[derive(Default)]
@@ -712,7 +706,7 @@ pub struct VoteCast {
 pub struct ProposalFinalized {
     pub id: u64,
     pub status: ProposalStatus,
-    pub reason: String,
+    pub approval_percentage: u8,
 }
 
 #[event]
@@ -733,13 +727,10 @@ pub struct ProposalCancelled {
 
 #[error_code]
 pub enum GovernanceError {
-    #[msg("Title too long (max 100 characters)")]
+    #[msg("Title too long (max 64 bytes)")]
     TitleTooLong,
 
-    #[msg("Description too long (max 1000 characters)")]
-    DescriptionTooLong,
-
-    #[msg("Too many actions (max 10)")]
+    #[msg("Too many actions (max 5)")]
     TooManyActions,
 
     #[msg("Insufficient stake to create proposal")]

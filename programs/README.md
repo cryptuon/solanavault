@@ -116,14 +116,23 @@ anchor deploy --provider.cluster mainnet
 
 ## Program IDs
 
-> **Note:** Replace with actual deployed addresses
+> **Note:** These are placeholder IDs. Replace with actual deployed addresses after running `anchor deploy`.
 
-| Program | Localnet | Devnet | Mainnet |
-|---------|----------|--------|---------|
-| vault-token | VTKNxxx... | VTKNxxx... | VTKNxxx... |
-| vault-staking | VSTKxxx... | VSTKxxx... | VSTKxxx... |
-| vault-rewards | VRWDxxx... | VRWDxxx... | VRWDxxx... |
-| vault-governance | VGOVxxx... | VGOVxxx... | VGOVxxx... |
+| Program | Placeholder | Deployed |
+|---------|-------------|----------|
+| vault-token | `11111111111111111111111111111112` | TBD |
+| vault-staking | `11111111111111111111111111111113` | TBD |
+| vault-rewards | `11111111111111111111111111111114` | TBD |
+| vault-governance | `11111111111111111111111111111115` | TBD |
+
+### Updating Program IDs
+
+After deployment, update the program IDs:
+
+1. Run `anchor keys list` to get deployed addresses
+2. Update each `declare_id!()` in `src/lib.rs` files
+3. Update `Anchor.toml` with new addresses
+4. Rebuild: `anchor build`
 
 ## Development
 

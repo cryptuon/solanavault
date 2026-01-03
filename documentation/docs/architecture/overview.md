@@ -269,6 +269,38 @@ Byzantine Fault Tolerant consensus ensures data integrity:
 
 ---
 
+## On-Chain Programs
+
+The tokenomics and governance are enforced through Solana smart contracts:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        VAULT Token                               │
+│            (1B supply, emission schedule, burning)               │
+└─────────────────────────┬───────────────────────────────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+          ▼               ▼               ▼
+┌─────────────────┐ ┌───────────┐ ┌─────────────────┐
+│    Staking      │ │  Rewards  │ │   Governance    │
+│  - Stake/Unstake│ │  - Epochs │ │   - Proposals   │
+│  - Tiers        │ │  - Fees   │ │   - Voting      │
+│  - Slashing     │ │  - Dist.  │ │   - Execution   │
+└─────────────────┘ └───────────┘ └─────────────────┘
+```
+
+| Program | Purpose |
+|---------|---------|
+| **vault-token** | SPL Token with 1B supply cap, emission schedule |
+| **vault-staking** | Tiered staking (Bronze→Platinum), 14-day unbonding |
+| **vault-rewards** | 24-hour epochs, 95%/5% fee distribution |
+| **vault-governance** | DAO voting with proposal types and timelocks |
+
+See [Smart Contracts](smart-contracts.md) for full implementation details.
+
+---
+
 ## Security Model
 
 ### Cryptographic Primitives
@@ -314,7 +346,9 @@ The network scales horizontally:
 
 ## Next Steps
 
+- [Smart Contracts](smart-contracts.md) - On-chain program details
 - [Compression Pipeline](compression.md) - How compression works
 - [Network Protocol](network.md) - P2P networking details
-- [Economics](economics.md) - Incentive mechanisms
+- [Tokenomics](tokenomics.md) - Token distribution and economics
+- [Economics](economics.md) - Pricing and fee structure
 - [API Reference](../reference/api.md) - Integration details

@@ -12,7 +12,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("VSTKxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+declare_id!("11111111111111111111111111111113");
 
 /// Minimum stake: 1,000 VAULT tokens (with 9 decimals)
 pub const MINIMUM_STAKE: u64 = 1_000 * 1_000_000_000;

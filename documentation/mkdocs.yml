@@ -67,6 +67,8 @@ nav:
     - Node Dashboard: guides/node-dashboard.md
   - Architecture:
     - Overview: architecture/overview.md
+    - Smart Contracts: architecture/smart-contracts.md
+    - Tokenomics: architecture/tokenomics.md
     - Compression Pipeline: architecture/compression.md
     - Network Protocol: architecture/network.md
     - Economics: architecture/economics.md
