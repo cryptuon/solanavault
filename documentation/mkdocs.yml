@@ -1,10 +1,11 @@
 site_name: SolanaVault Documentation
 site_description: Decentralized blockchain compression and storage network for Solana
 site_author: SolanaVault Team
-site_url: https://docs.solanavault.io
+site_url: https://solanavault.docs.cryptuon.com/
 
-repo_name: solanavault
-repo_url: https://github.com/solanavault/solanavault
+repo_name: cryptuon/solanavault
+repo_url: https://github.com/cryptuon/solanavault
+edit_uri: edit/main/documentation/docs/
 
 theme:
   name: material
@@ -83,7 +84,7 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/solanavault/solanavault
+      link: https://github.com/cryptuon/solanavault
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/solanavault
 

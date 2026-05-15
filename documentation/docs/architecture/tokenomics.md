@@ -1,6 +1,6 @@
 # SolanaVault Tokenomics
 
-> Comprehensive token economics derived from the [SolanaVault Whitepaper](../../../docs/research/whitepaper/solanavault_whitepaper.pdf)
+> Comprehensive token economics derived from the [SolanaVault Whitepaper](https://github.com/cryptuon/solanavault/blob/main/docs/research/whitepaper/solanavault_whitepaper.pdf)
 
 ---
 
@@ -464,7 +464,7 @@ The tokenomics are enforced on-chain through four Anchor programs. See [Smart Co
 - [Network Architecture](network.md) - How payments flow
 - [Gateway Operators Guide](../guides/gateway-operators.md) - Start earning
 - [Full Node Setup](../guides/full-node.md) - Run a storage node
-- [Whitepaper](../../../docs/research/whitepaper/solanavault_whitepaper.pdf) - Academic paper
+- [Whitepaper](https://github.com/cryptuon/solanavault/blob/main/docs/research/whitepaper/solanavault_whitepaper.pdf) - Academic paper
 
 ---
 
