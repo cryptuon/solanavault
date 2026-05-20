@@ -2,6 +2,12 @@
 
 **Decentralized Blockchain Compression & Storage Network for Solana**
 
+!!! warning "Under active development"
+
+    SolanaVault is under active development. APIs, schemas, and on-chain
+    layouts may change. Production use at your own risk.
+    Issues + PRs welcome — see the [GitHub repo](https://github.com/cryptuon/solanavault).
+
 SolanaVault is a fully decentralized network that provides **15-25:1 compression ratios** on Solana blockchain data with drop-in RPC compatibility and built-in economic incentives.
 
 ---

@@ -1,12 +1,16 @@
 # SolanaVault
 
+> **Active development.** SolanaVault is under active development. APIs,
+> schemas, and on-chain layouts may change between releases.
+> Production use at your own risk. Issues and PRs welcome.
+
 <div align="center">
   <h3>🚀 High-Performance Solana Blockchain Compression & Storage</h3>
   <p><strong>15-25:1 Compression Ratio</strong> | <strong>95% Storage Savings</strong> | <strong>Sub-Millisecond Retrieval</strong></p>
 
-  [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
   [![Compression](https://img.shields.io/badge/compression-15--25%3A1-red.svg)]()
   [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)]()
+  [![Status](https://img.shields.io/badge/status-active--development-orange.svg)]()
 </div>
 
 ## Overview
@@ -30,34 +34,31 @@ SolanaVault creates a **decentralized economy** for blockchain data access:
 🤖 **Intelligent Compression** - 15-25:1 ratios through multi-stage pipeline optimization
 💰 **Economic Incentives** - Pay-per-use model with gateway operators earning revenue
 🔌 **Drop-in Compatibility** - Standard Solana RPC API works unchanged
-⚡ **Light Client Access** - No need to run full nodes for most applications
+⚡ **Light Client Module** - Embeddable light-client logic so applications can verify network responses without running a full node
 🏗️ **Advanced Architecture** - DHT discovery, reputation systems, automatic replication
 
 ## Quick Start
 
-### For Developers (Light Client - Recommended)
+### Build
 ```bash
 # Build the project
 cargo build --release
-
-# Start light client daemon with wallet
-./target/release/vault-light-client start --balance 50000
-
-# Use standard Solana libraries - they now connect to decentralized network!
-# Replace: https://api.mainnet-beta.solana.com
-# With:    http://localhost:8899 (light client endpoint)
 ```
 
-### For Network Operators (Full Node)
+The release build produces four binaries in `target/release/`:
+`vault-cli`, `vault-node`, `vault-rpc-proxy`, `vault-rpc-decentralized`.
+The light client currently ships as a Rust module
+([`vault-core::network::light_client`](crates/vault-core/src/network/light_client.rs))
+consumed by the gateway and proxy crates; a dedicated `vault-light-client`
+binary is planned but not yet built.
+
+### For Network Operators
 ```bash
-# Start decentralized vault node
+# Run the decentralized RPC proxy / gateway
 ./target/release/vault-rpc-decentralized
 
-# Or run as gateway to earn revenue
-./target/release/vault-rpc-decentralized --gateway-mode
-
-# Or participate in storage/consensus
-./target/release/vault-node --storage-capacity 100GB
+# Or participate in storage/consensus as a full node
+./target/release/vault-node --capacity 107374182400  # 100GB
 ```
 
 ### Test the Network
@@ -134,7 +135,7 @@ Our RPC proxy demonstrates real-world performance:
 ✅ **Fully Decentralized**: True P2P network with no central authority
 ✅ **Economic Incentives**: Pay-per-use model with operator revenue
 ✅ **Drop-in Compatible**: Standard Solana RPC API unchanged
-✅ **Light Client Access**: No full node required for most users
+✅ **Light Client Module**: Embeddable light-client verification logic — no full node required
 ✅ **Proven Compression**: 15-25:1 ratios on real Solana data
 ✅ **High Performance**: NNG transport with microsecond latency
 ✅ **Data Integrity**: Byzantine consensus with cryptographic verification
@@ -156,7 +157,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustc --version  # Ensure 1.70+
 
 # Clone and build
-git clone https://github.com/your-org/solanavault.git
+git clone https://github.com/cryptuon/solanavault.git
 cd solanavault
 cargo build --release
 
@@ -172,10 +173,15 @@ cargo run -p vault-rpc-proxy
 
 ## Documentation
 
+The full documentation site lives in [`documentation/`](documentation/) and is
+published at **[docs.cryptuon.com/solanavault](https://docs.cryptuon.com/solanavault/)**.
+Marketing copy and product overview: **[solanavault.cryptuon.com](https://solanavault.cryptuon.com/)**.
+
+In-repo references:
+
 ### 📚 Getting Started
 - **[Quick Start Guide](docs/guides/getting-started.md)** - Get up and running quickly
 - **[Demo Guide](docs/guides/demo.md)** - Interactive demonstrations
-- **[Configuration](docs/guides/configuration.md)** - Setup and configuration
 
 ### 🏗️ Architecture
 - **[System Overview](docs/architecture/overview.md)** - High-level architecture
@@ -184,13 +190,9 @@ cargo run -p vault-rpc-proxy
 
 ### 🔧 API Reference
 - **[Core API](docs/api/core.md)** - Core library interfaces
-- **[RPC Proxy](docs/api/rpc-proxy.md)** - RPC endpoints and usage
-- **[Storage API](docs/api/storage.md)** - Storage operations
 
 ### 👨‍💻 Development
 - **[Contributing](docs/development/contributing.md)** - Contribution guidelines
-- **[Claude Integration](docs/development/claude-integration.md)** - AI-assisted development
-- **[Testing](docs/development/testing.md)** - Testing strategies
 
 ## Performance Benchmarks
 
@@ -213,15 +215,12 @@ We welcome contributions from the community! Please read our [Contributing Guide
 
 ## License
 
-Licensed under either of:
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE))
-- MIT License ([LICENSE-MIT](LICENSE-MIT))
-
-at your option.
+Dual-licensed under either of **MIT** or **Apache-2.0** at your option
+(see workspace `Cargo.toml`).
 
 ---
 
 <div align="center">
   <strong>Built for developers. Tested on real Solana blockchain data.</strong><br/>
-  <em>Efficient, reliable, and production-ready blockchain storage.</em>
+  <em>Open source, under active development. Issues and PRs welcome.</em>
 </div>
