@@ -25,6 +25,7 @@ theme:
   features:
     - navigation.tabs
     - navigation.sections
+    - navigation.indexes
     - navigation.expand
     - navigation.top
     - search.suggest
@@ -58,28 +59,29 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Getting Started:
-    - Quick Start: guides/quickstart.md
-    - Installation: guides/installation.md
-  - User Guides:
-    - Light Client: guides/light-client.md
-    - Gateway Operators: guides/gateway-operators.md
-    - Full Node Setup: guides/full-node.md
-    - Node Dashboard: guides/node-dashboard.md
-  - Architecture:
-    - Overview: architecture/overview.md
-    - Smart Contracts: architecture/smart-contracts.md
-    - Tokenomics: architecture/tokenomics.md
-    - Compression Pipeline: architecture/compression.md
-    - Network Protocol: architecture/network.md
-    - Economics: architecture/economics.md
-  - Reference:
-    - API Reference: reference/api.md
+  - Docs:
+    - Getting Started:
+      - Quick Start: guides/quickstart.md
+      - Installation: guides/installation.md
+    - User Guides:
+      - Light Client: guides/light-client.md
+      - Gateway Operators: guides/gateway-operators.md
+      - Full Node Setup: guides/full-node.md
+      - Node Dashboard: guides/node-dashboard.md
+    - Architecture:
+      - Overview: architecture/overview.md
+      - Smart Contracts: architecture/smart-contracts.md
+      - Tokenomics: architecture/tokenomics.md
+      - Compression Pipeline: architecture/compression.md
+      - Network Protocol: architecture/network.md
+      - Economics: architecture/economics.md
+    - Troubleshooting:
+      - Common Issues: troubleshooting/common-issues.md
+      - FAQ: troubleshooting/faq.md
+  - API Reference:
+    - API: reference/api.md
     - Configuration: reference/configuration.md
     - CLI Commands: reference/cli.md
-  - Troubleshooting:
-    - Common Issues: troubleshooting/common-issues.md
-    - FAQ: troubleshooting/faq.md
 
 extra:
   social:
