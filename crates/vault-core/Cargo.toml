@@ -28,7 +28,7 @@ zstd = "0.13"
 log = { workspace = true }
 rand = { workspace = true }
 bs58 = "0.4"
-blockchain-compression = { path = "/home/dipankar/Code/blockchain-compression", features = ["zstd"] }
+blockchain-compression = { git = "https://github.com/cryptuon/blockchain-compression", features = ["zstd"] }
 bytes = "1.5"
 # P2P networking and transport
 nng = { workspace = true }
