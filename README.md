@@ -9,7 +9,7 @@
   <p><strong>15-25:1 Compression Ratio</strong> | <strong>95% Storage Savings</strong> | <strong>Sub-Millisecond Retrieval</strong></p>
 
   [![Compression](https://img.shields.io/badge/compression-15--25%3A1-red.svg)]()
-  [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)]()
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg)]()
   [![Status](https://img.shields.io/badge/status-active--development-orange.svg)]()
 </div>
 
@@ -217,8 +217,7 @@ We welcome contributions from the community! Please read our [Contributing Guide
 
 ## License
 
-Dual-licensed under either of **MIT** or **Apache-2.0** at your option
-(see workspace `Cargo.toml`).
+Licensed under the **MIT** license (see [`LICENSE`](./LICENSE)).
 
 ---
 
