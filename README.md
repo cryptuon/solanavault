@@ -13,6 +13,8 @@
   [![Status](https://img.shields.io/badge/status-active--development-orange.svg)]()
 </div>
 
+**[🌐 Site](https://solanavault.cryptuon.com/) · [📚 Docs](https://docs.cryptuon.com/solanavault/) · [🔬 Cryptuon Research](https://github.com/cryptuon)**
+
 ## Overview
 
 SolanaVault is a **fully decentralized blockchain compression and storage network** that provides efficient storage and retrieval of Solana blockchain data with extreme compression ratios while maintaining perfect data integrity. Built with economic incentives and drop-in compatibility.
@@ -224,3 +226,13 @@ Dual-licensed under either of **MIT** or **Apache-2.0** at your option
   <strong>Built for developers. Tested on real Solana blockchain data.</strong><br/>
   <em>Open source, under active development. Issues and PRs welcome.</em>
 </div>
+
+---
+
+## Part of Cryptuon Research
+
+`solanavault` is one of [20 open-source blockchain-infrastructure projects](https://www.cryptuon.com/projects) from **[Cryptuon Research](https://www.cryptuon.com)** — blockchain theory, shipped as protocols.
+
+**Related projects:** [blockchain-compression](https://blockchain-compression.cryptuon.com/) · [StreamSync](https://streamsync.cryptuon.com/) · [DataMgmt Node](https://datamgmtnode.cryptuon.com/)
+
+Docs: [docs.cryptuon.com/solanavault](https://docs.cryptuon.com/solanavault/) · Contact: [contact@cryptuon.com](mailto:contact@cryptuon.com)

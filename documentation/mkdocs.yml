@@ -1,6 +1,6 @@
 site_name: SolanaVault Documentation
 site_description: Decentralized blockchain compression and storage network for Solana
-site_author: SolanaVault Team
+site_author: Cryptuon Research
 site_url: https://docs.cryptuon.com/solanavault/
 
 repo_name: cryptuon/solanavault
@@ -84,10 +84,11 @@ nav:
     - CLI Commands: reference/cli.md
 
 extra:
+  homepage: https://solanavault.cryptuon.com/
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/cryptuon/solanavault
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/solanavault
 
-copyright: Copyright &copy; 2024-2025 SolanaVault
+copyright: &copy; 2026 Cryptuon Research

@@ -11,8 +11,11 @@ members = [
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/your-org/solana-vault"
-keywords = ["solana", "blockchain", "storage", "decentralized"]
+authors = ["Cryptuon Research <contact@cryptuon.com>"]
+homepage = "https://solanavault.cryptuon.com/"
+repository = "https://github.com/cryptuon/solanavault"
+documentation = "https://docs.cryptuon.com/solanavault/"
+keywords = ["solana", "data-availability", "storage", "compression", "blockchain"]
 categories = ["cryptography::cryptocurrencies"]
 
 [workspace.dependencies]
